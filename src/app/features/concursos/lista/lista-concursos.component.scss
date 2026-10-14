@@ -1,0 +1,41 @@
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--app-superficie);
+  border-bottom: 1px solid var(--app-borda);
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  &__usuario {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.95rem;
+  }
+
+  &__selo {
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--app-primaria);
+    background: rgb(99 102 241 / 12%);
+  }
+}
+
+.conteudo {
+  padding: 24px;
+
+  &__vazio {
+    color: var(--app-texto-suave);
+  }
+}

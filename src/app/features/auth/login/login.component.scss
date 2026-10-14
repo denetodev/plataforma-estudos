@@ -1,0 +1,86 @@
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(900px 500px at 10% -10%, rgb(99 102 241 / 22%), transparent 60%),
+    radial-gradient(700px 500px at 110% 110%, rgb(139 92 246 / 18%), transparent 60%),
+    var(--app-fundo);
+
+  &__card {
+    width: 100%;
+    max-width: 420px;
+    padding: 36px 32px 32px;
+    border-radius: 20px;
+    background: var(--app-superficie);
+    border: 1px solid var(--app-borda);
+    box-shadow: 0 20px 50px -20px rgb(79 70 229 / 35%);
+  }
+
+  &__marca {
+    text-align: center;
+    margin-bottom: 28px;
+
+    h1 {
+      margin: 16px 0 6px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0;
+      color: var(--app-texto-suave);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+  }
+
+  &__logo {
+    display: inline-grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--app-primaria), #8b5cf6);
+
+    mat-icon {
+      width: 30px;
+      height: 30px;
+      font-size: 30px;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__erro {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #b42318;
+    background: #fef3f2;
+    border: 1px solid #fecdca;
+  }
+
+  &__enviar {
+    height: 48px;
+    margin-top: 8px;
+    font-size: 1rem;
+    border-radius: 12px;
+
+    mat-spinner {
+      display: inline-block;
+      margin-right: 8px;
+    }
+  }
+}

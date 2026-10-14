@@ -15,9 +15,16 @@ CREATE TABLE IF NOT EXISTS perfis (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Helper de RLS: SECURITY DEFINER evita recursão infinita nas policies de 'perfis'
+-- (uma policy de perfis que consulta perfis dispara "infinite recursion detected in policy").
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.perfis WHERE id = auth.uid() AND role = 'admin');
+$$;
+
 -- Trigger: cria perfil automaticamente após cadastro no Auth
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   INSERT INTO perfis (id, nome)
   VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'nome', NEW.email));
@@ -122,7 +129,7 @@ CREATE POLICY "perfil_proprio" ON perfis
   FOR ALL USING (id = auth.uid());
 CREATE POLICY "admin_perfis" ON perfis
   FOR ALL USING (
-    EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin')
+    public.is_admin()
   );
 
 -- Concursos: user vê os próprios; admin vê todos
@@ -131,7 +138,7 @@ CREATE POLICY "concurso_proprio" ON concursos
   FOR ALL USING (user_id = auth.uid());
 CREATE POLICY "admin_concursos" ON concursos
   FOR ALL USING (
-    EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin')
+    public.is_admin()
   );
 
 -- Blocos, semanas, dias, itens: herdado via concurso
@@ -142,7 +149,7 @@ CREATE POLICY "blocos_via_concurso" ON blocos
       SELECT 1 FROM concursos c
       WHERE c.id = blocos.concurso_id
         AND (c.user_id = auth.uid() OR
-             EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin'))
+             public.is_admin())
     )
   );
 
@@ -154,7 +161,7 @@ CREATE POLICY "semanas_via_bloco" ON semanas
       JOIN concursos c ON c.id = b.concurso_id
       WHERE b.id = semanas.bloco_id
         AND (c.user_id = auth.uid() OR
-             EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin'))
+             public.is_admin())
     )
   );
 
@@ -167,7 +174,7 @@ CREATE POLICY "dias_via_semana" ON dias
       JOIN concursos c ON c.id = b.concurso_id
       WHERE s.id = dias.semana_id
         AND (c.user_id = auth.uid() OR
-             EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin'))
+             public.is_admin())
     )
   );
 
@@ -181,7 +188,7 @@ CREATE POLICY "itens_via_dia" ON itens
       JOIN concursos c ON c.id = b.concurso_id
       WHERE d.id = itens.dia_id
         AND (c.user_id = auth.uid() OR
-             EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin'))
+             public.is_admin())
     )
   );
 
@@ -191,13 +198,13 @@ CREATE POLICY "progresso_proprio" ON progresso
   FOR ALL USING (user_id = auth.uid());
 CREATE POLICY "admin_progresso" ON progresso
   FOR ALL USING (
-    EXISTS (SELECT 1 FROM perfis p WHERE p.id = auth.uid() AND p.role = 'admin')
+    public.is_admin()
   );
 
 -- ------------------------------------------------------------
 -- VIEW ÚTIL: progresso agregado por bloco
 -- ------------------------------------------------------------
-CREATE OR REPLACE VIEW view_progresso_blocos AS
+CREATE OR REPLACE VIEW view_progresso_blocos WITH (security_invoker = true) AS
 SELECT
   b.id AS bloco_id,
   b.titulo AS bloco_titulo,

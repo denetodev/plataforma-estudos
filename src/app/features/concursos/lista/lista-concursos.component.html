@@ -1,0 +1,19 @@
+<header class="topo">
+  <h1>Meus concursos</h1>
+  <div class="topo__usuario">
+    <span>
+      {{ perfil()?.nome ?? 'Usuário' }}
+      @if (isAdmin()) {
+        <span class="topo__selo">admin</span>
+      }
+    </span>
+    <button mat-stroked-button type="button" (click)="sair()">
+      <mat-icon>logout</mat-icon>
+      Sair
+    </button>
+  </div>
+</header>
+
+<main class="conteudo">
+  <p class="conteudo__vazio">Em breve: seus concursos aparecerão aqui.</p>
+</main>

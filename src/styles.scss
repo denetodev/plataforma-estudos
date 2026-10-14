@@ -1,0 +1,50 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$violet-palette,
+      ),
+      typography: Inter,
+      density: 0,
+    )
+  );
+  @include mat.theme-overrides(
+    (
+      primary: #6366f1,
+      on-primary: #ffffff,
+      primary-container: #e0e7ff,
+      on-primary-container: #312e81,
+      surface-tint: #6366f1,
+    )
+  );
+}
+
+:root {
+  --app-primaria: #6366f1;
+  --app-primaria-escura: #4f46e5;
+  --app-fundo: #f5f6fb;
+  --app-superficie: #ffffff;
+  --app-borda: #e5e7f0;
+  --app-texto-suave: #6b7280;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, 'Segoe UI', Roboto, sans-serif;
+  background: var(--app-fundo);
+  color: #1f2937;
+  -webkit-font-smoothing: antialiased;
+}
