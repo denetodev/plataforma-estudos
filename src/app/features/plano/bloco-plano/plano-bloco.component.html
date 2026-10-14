@@ -32,6 +32,16 @@
     </div>
   </header>
 
+  @if (totalItens() > 0) {
+    <section class="geral" aria-label="Progresso do bloco">
+      <div class="geral__topo">
+        <span>{{ itensConcluidos() }} de {{ totalItens() }} itens concluídos</span>
+        <strong>{{ percentual() }}%</strong>
+      </div>
+      <app-progress-bar [valor]="percentual()" [cor]="cor()" rotulo="Progresso do bloco" />
+    </section>
+  }
+
   @if (semanas().length === 0) {
     <app-empty-state
       icone="calendar_view_week"
@@ -53,7 +63,7 @@
               @if (paraData(semana.data_inicio); as inicio) {
                 {{ inicio | date: 'dd/MM' }}@if (paraData(semana.data_fim); as fim) { – {{ fim | date: 'dd/MM' }}} ·
               }
-              {{ plural(semana.dias.length, 'dia', 'dias') }} · {{ plural(totalItensSemana(semana), 'item', 'itens') }}
+              {{ plural(semana.dias.length, 'dia', 'dias') }} · {{ concluidosSemana(semana) }}/{{ totalItensSemana(semana) }} itens
             </mat-panel-description>
           </mat-expansion-panel-header>
 
@@ -83,6 +93,9 @@
                   {{ dia.label }}
                   @if (dia.dia_semana) {
                     <span class="etiqueta">{{ dia.dia_semana | diaSemana }}</span>
+                  }
+                  @if (dia.itens.length > 0) {
+                    <span class="dia__contagem">{{ concluidosDia(dia) }}/{{ dia.itens.length }}</span>
                   }
                 </h3>
                 <div class="dia__acoes">
@@ -116,7 +129,13 @@
               } @else {
                 <ul class="itens">
                   @for (item of dia.itens; track item.id) {
-                    <li class="item">
+                    <li class="item" [class.item--concluido]="item.concluido">
+                      <mat-checkbox
+                        class="item__check"
+                        [checked]="!!item.concluido"
+                        (change)="alternarItem(item, $event.checked)"
+                        [aria-label]="'Marcar como concluído: ' + item.descricao"
+                      />
                       <span class="item__icone" aria-hidden="true">
                         <mat-icon>{{ tipo(item.tipo)?.icone ?? 'article' }}</mat-icon>
                       </span>

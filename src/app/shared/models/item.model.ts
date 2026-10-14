@@ -21,6 +21,8 @@ export interface Item {
   paginas: string | null;
   tags: string[] | null;
   created_at: string;
+  /** Progresso do usuário logado (preenchido ao carregar o plano). */
+  concluido?: boolean;
 }
 
 export type ItemDados = Pick<Item, 'descricao' | 'tipo' | 'duracao_min' | 'fonte' | 'paginas' | 'tags'>;

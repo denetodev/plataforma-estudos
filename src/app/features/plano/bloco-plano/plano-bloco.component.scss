@@ -74,6 +74,31 @@
   }
 }
 
+.geral {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borda);
+
+  &__topo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--app-texto-suave);
+    font-size: 0.9rem;
+
+    strong {
+      font-size: 1.15rem;
+      color: #1f2937;
+    }
+  }
+}
+
 .semanas {
   display: flex;
   flex-direction: column;
@@ -135,6 +160,12 @@
     align-items: center;
     gap: 4px;
   }
+
+  &__contagem {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--app-texto-suave);
+  }
 }
 
 .itens {
@@ -149,6 +180,20 @@
   gap: 12px;
   padding: 10px 0;
   border-top: 1px solid var(--app-borda);
+
+  &__check {
+    flex: none;
+    margin: -6px -6px -6px -10px;
+  }
+
+  &--concluido &__descricao {
+    text-decoration: line-through;
+    color: var(--app-texto-suave);
+  }
+
+  &--concluido &__icone {
+    opacity: 0.55;
+  }
 
   &__icone {
     display: grid;
