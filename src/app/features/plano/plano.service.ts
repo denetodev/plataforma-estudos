@@ -1,29 +1,68 @@
 import { Injectable, inject } from '@angular/core';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { SupabaseService } from '../../core/supabase/supabase.service';
-import { DiaDados } from '../../shared/models/dia.model';
-import { ItemDados } from '../../shared/models/item.model';
+import { DiaComItens, DiaDados } from '../../shared/models/dia.model';
+import { Item, ItemDados } from '../../shared/models/item.model';
 import { SemanaCompleta, SemanaDados } from '../../shared/models/semana.model';
 
 type Tabela = 'semanas' | 'dias' | 'itens';
+
+/** Formato bruto da consulta: itens trazem a linha de progresso embutida. */
+type SemanaComProgresso = Omit<SemanaCompleta, 'dias'> & {
+  dias: (Omit<DiaComItens, 'itens'> & {
+    itens: (Omit<Item, 'concluido'> & { progresso: { concluido: boolean }[] | null })[];
+  })[];
+};
 
 /** Semanas → dias → itens de um bloco. */
 @Injectable({ providedIn: 'root' })
 export class PlanoService {
   private readonly supabase = inject(SupabaseService);
+  private readonly auth = inject(AuthService);
 
-  /** Árvore completa do bloco em uma única consulta, ordenada em todos os níveis. */
+  /**
+   * Árvore completa do bloco em uma única consulta, ordenada em todos os níveis,
+   * com o progresso do usuário logado em cada item.
+   */
   async carregar(blocoId: string): Promise<SemanaCompleta[]> {
+    const usuarioId = this.usuarioId();
     const { data, error } = await this.supabase.client
       .from('semanas')
-      .select('*, dias(*, itens(*))')
+      .select('*, dias(*, itens(*, progresso(concluido)))')
       .eq('bloco_id', blocoId)
+      // Filtra só as linhas embutidas de progresso (sem !inner, não remove itens).
+      .eq('dias.itens.progresso.user_id', usuarioId)
       .order('ordem', { ascending: true })
       .order('ordem', { referencedTable: 'dias', ascending: true })
       .order('ordem', { referencedTable: 'dias.itens', ascending: true })
-      .returns<SemanaCompleta[]>();
+      .returns<SemanaComProgresso[]>();
     if (error) throw this.erro('Não foi possível carregar o plano de estudos.', error);
-    return data ?? [];
+
+    return (data ?? []).map((semana) => ({
+      ...semana,
+      dias: semana.dias.map((dia) => ({
+        ...dia,
+        itens: dia.itens.map(({ progresso, ...item }) => ({
+          ...item,
+          concluido: progresso?.[0]?.concluido ?? false,
+        })),
+      })),
+    }));
+  }
+
+  /** Marca/desmarca um item para o usuário logado (um registro por usuário × item). */
+  async marcarItem(itemId: string, concluido: boolean): Promise<void> {
+    const { error } = await this.supabase.client.from('progresso').upsert(
+      {
+        user_id: this.usuarioId(),
+        item_id: itemId,
+        concluido,
+        concluido_em: concluido ? new Date().toISOString() : null,
+      },
+      { onConflict: 'user_id,item_id' },
+    );
+    if (error) throw this.erro('Não foi possível salvar o progresso.', error);
   }
 
   // Semanas
@@ -66,6 +105,12 @@ export class PlanoService {
 
   excluirItem(id: string): Promise<void> {
     return this.excluir('itens', id, 'excluir o item');
+  }
+
+  private usuarioId(): string {
+    const id = this.auth.user()?.id;
+    if (!id) throw new Error('Sua sessão expirou. Entre novamente.');
+    return id;
   }
 
   private async proximaOrdem(tabela: Tabela, colunaPai: string, paiId: string): Promise<number> {

@@ -8,7 +8,9 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,10 +25,12 @@ import {
   ConfirmDialogData,
 } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { Bloco } from '../../../shared/models/bloco.model';
-import { Dia, DiaDados } from '../../../shared/models/dia.model';
+import { Dia, DiaComItens, DiaDados } from '../../../shared/models/dia.model';
 import { Item, ItemDados, TIPOS_ITEM } from '../../../shared/models/item.model';
 import { Semana, SemanaCompleta, SemanaDados } from '../../../shared/models/semana.model';
+import { isoParaData } from '../../../shared/utils/data';
 import { DiaSemanaPipe } from '../../../shared/pipes/dia-semana.pipe';
 import { MinutosParaTempoPipe } from '../../../shared/pipes/minutos-para-tempo.pipe';
 import { BlocosService } from '../blocos.service';
@@ -39,13 +43,16 @@ import { SemanaFormDialogComponent } from '../semana-form/semana-form-dialog.com
 @Component({
   selector: 'app-plano-bloco',
   imports: [
+    DatePipe,
     RouterLink,
     MatButtonModule,
+    MatCheckboxModule,
     MatExpansionModule,
     MatIconModule,
     MatMenuModule,
     MatProgressSpinnerModule,
     EmptyStateComponent,
+    ProgressBarComponent,
     DiaSemanaPipe,
     MinutosParaTempoPipe,
   ],
@@ -75,6 +82,17 @@ export class PlanoBlocoComponent implements OnInit {
     this.semanas().reduce((s, sem) => s + sem.dias.reduce((d, dia) => d + dia.itens.length, 0), 0),
   );
 
+  protected readonly itensConcluidos = computed(() =>
+    this.semanas().reduce(
+      (s, sem) => s + sem.dias.reduce((d, dia) => d + dia.itens.filter((i) => i.concluido).length, 0),
+      0,
+    ),
+  );
+
+  protected readonly percentual = computed(() =>
+    this.totalItens() > 0 ? Math.round((this.itensConcluidos() / this.totalItens()) * 100) : 0,
+  );
+
   ngOnInit(): void {
     void this.carregar();
   }
@@ -98,12 +116,53 @@ export class PlanoBlocoComponent implements OnInit {
 
   // ---- helpers de exibição ----
 
+  protected concluidosDia(dia: DiaComItens): number {
+    return dia.itens.filter((i) => i.concluido).length;
+  }
+
+  protected concluidosSemana(semana: SemanaCompleta): number {
+    return semana.dias.reduce((s, d) => s + this.concluidosDia(d), 0);
+  }
+
+  /** Atualiza a tela na hora e desfaz se a gravação falhar. */
+  protected async alternarItem(item: Item, concluido: boolean): Promise<void> {
+    this.definirConcluido(item.id, concluido);
+    try {
+      await this.planoService.marcarItem(item.id, concluido);
+    } catch (e) {
+      this.definirConcluido(item.id, !concluido);
+      this.snackBar.open(e instanceof Error ? e.message : 'Não foi possível salvar o progresso.', 'Fechar', {
+        duration: 6000,
+      });
+    }
+  }
+
+  private definirConcluido(itemId: string, concluido: boolean): void {
+    this.semanas.update((semanas) =>
+      semanas.map((semana) => ({
+        ...semana,
+        dias: semana.dias.map((dia) => ({
+          ...dia,
+          itens: dia.itens.map((i) => (i.id === itemId ? { ...i, concluido } : i)),
+        })),
+      })),
+    );
+  }
+
   protected totalItensSemana(semana: SemanaCompleta): number {
     return semana.dias.reduce((s, d) => s + d.itens.length, 0);
   }
 
   protected plural(n: number, singular: string, plural: string): string {
     return `${n} ${n === 1 ? singular : plural}`;
+  }
+
+  protected paraData = isoParaData;
+
+  /** Limites do calendário das semanas: período do bloco, quando definido. */
+  private limitesBloco(): { minData: Date | null; maxData: Date | null } {
+    const b = this.bloco();
+    return { minData: isoParaData(b?.data_inicio), maxData: isoParaData(b?.data_fim) };
   }
 
   protected tipo(valor: Item['tipo']) {
@@ -118,6 +177,7 @@ export class PlanoBlocoComponent implements OnInit {
       undefined,
       (d) => this.planoService.criarSemana(this.blocoId(), d),
       'Semana criada.',
+      { ...this.limitesBloco(), proximoNumero: this.semanas().length + 1 },
     );
   }
 
@@ -127,6 +187,7 @@ export class PlanoBlocoComponent implements OnInit {
       semana,
       (d) => this.planoService.atualizarSemana(semana.id, d),
       'Semana atualizada.',
+      this.limitesBloco(),
     );
   }
 
@@ -204,8 +265,9 @@ export class PlanoBlocoComponent implements OnInit {
     valor: V | undefined,
     salvar: (dados: D) => Promise<void>,
     mensagemSucesso: string,
+    extra: object = {},
   ): Promise<void> {
-    const dados: FormDialogData<V, D> = { valor, salvar };
+    const dados: FormDialogData<V, D> = { valor, salvar, ...extra };
     const salvou = await firstValueFrom(
       this.dialog
         .open<unknown, FormDialogData<V, D>, boolean>(componente, {
