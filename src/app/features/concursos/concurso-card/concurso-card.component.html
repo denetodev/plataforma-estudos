@@ -1,0 +1,65 @@
+<article class="card" [class.card--inativo]="!concurso().ativo">
+  <header class="card__cabecalho">
+    <div class="card__titulos">
+      <h2 class="card__nome">{{ concurso().nome }}</h2>
+      @if (subtitulo()) {
+        <p class="card__subtitulo">{{ subtitulo() }}</p>
+      }
+    </div>
+
+    <button
+      mat-icon-button
+      type="button"
+      [matMenuTriggerFor]="menu"
+      [attr.aria-label]="'Ações para ' + concurso().nome"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu" xPosition="before">
+      <button mat-menu-item type="button" (click)="editar.emit(concurso())">
+        <mat-icon>edit</mat-icon>
+        <span>Editar</span>
+      </button>
+      <button mat-menu-item type="button" (click)="excluir.emit(concurso())">
+        <mat-icon>delete_outline</mat-icon>
+        <span>Excluir</span>
+      </button>
+    </mat-menu>
+  </header>
+
+  <div class="card__etiquetas">
+    @if (concurso().nivel) {
+      <span class="etiqueta">{{ concurso().nivel }}</span>
+    }
+    @if (!concurso().ativo) {
+      <span class="etiqueta etiqueta--cinza">Arquivado</span>
+    }
+  </div>
+
+  <div class="card__prova">
+    <mat-icon>event</mat-icon>
+    @if (dataProva(); as data) {
+      <span>
+        {{ data | date: 'dd/MM/yyyy' }}
+        <span class="card__contagem">· {{ contagem() }}</span>
+      </span>
+    } @else {
+      <span class="card__contagem">Data da prova ainda não divulgada</span>
+    }
+  </div>
+
+  <footer class="card__progresso">
+    <div class="card__progresso-topo">
+      <span>
+        @if (concurso().total_itens > 0) {
+          {{ plural(concurso().total_blocos, 'bloco', 'blocos') }} ·
+          {{ concurso().itens_concluidos }}/{{ concurso().total_itens }} itens
+        } @else {
+          Nenhum item de estudo ainda
+        }
+      </span>
+      <strong>{{ concurso().percentual }}%</strong>
+    </div>
+    <app-progress-bar [valor]="concurso().percentual" rotulo="Progresso no concurso" />
+  </footer>
+</article>

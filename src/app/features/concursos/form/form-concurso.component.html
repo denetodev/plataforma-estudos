@@ -1,0 +1,85 @@
+<a class="voltar" routerLink="/concursos">
+  <mat-icon>arrow_back</mat-icon>
+  Voltar para concursos
+</a>
+
+<section class="painel">
+  <h1>{{ editando ? 'Editar concurso' : 'Novo concurso' }}</h1>
+  <p class="painel__sub">
+    {{
+      editando
+        ? 'Atualize os dados do concurso.'
+        : 'Informe os dados básicos. Os blocos de estudo você monta depois.'
+    }}
+  </p>
+
+  @if (carregando()) {
+    <div class="painel__carregando" role="status">
+      <mat-spinner diameter="32" />
+      <span>Carregando…</span>
+    </div>
+  } @else {
+    <form class="form" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      @if (erro(); as mensagem) {
+        <div class="form__erro" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ mensagem }}</span>
+        </div>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nome do concurso</mat-label>
+        <input matInput formControlName="nome" placeholder="Ex.: INSS 2026 - Técnico do Seguro Social" />
+        @if (form.controls.nome.hasError('required')) {
+          <mat-error>Informe o nome do concurso.</mat-error>
+        } @else if (form.controls.nome.hasError('maxlength')) {
+          <mat-error>Use no máximo 150 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="form__linha">
+        <mat-form-field appearance="outline">
+          <mat-label>Órgão</mat-label>
+          <input matInput formControlName="orgao" placeholder="Ex.: INSS" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cargo</mat-label>
+          <input matInput formControlName="cargo" placeholder="Ex.: Técnico do Seguro Social" />
+        </mat-form-field>
+      </div>
+
+      <div class="form__linha">
+        <mat-form-field appearance="outline">
+          <mat-label>Nível</mat-label>
+          <mat-select formControlName="nivel">
+            <mat-option value="">Não informado</mat-option>
+            @for (nivel of niveis; track nivel) {
+              <mat-option [value]="nivel">{{ nivel }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data da prova</mat-label>
+          <input matInput type="date" formControlName="data_prova" />
+          <mat-hint>Deixe em branco se ainda não foi divulgada.</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <mat-slide-toggle formControlName="ativo">Concurso ativo</mat-slide-toggle>
+
+      <div class="form__acoes">
+        <a mat-button routerLink="/concursos">Cancelar</a>
+        <button mat-flat-button type="submit" [disabled]="salvando()">
+          @if (salvando()) {
+            <mat-spinner diameter="20" />
+            Salvando…
+          } @else {
+            {{ editando ? 'Salvar alterações' : 'Criar concurso' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</section>
