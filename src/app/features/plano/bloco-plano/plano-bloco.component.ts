@@ -8,6 +8,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -27,6 +28,7 @@ import { Bloco } from '../../../shared/models/bloco.model';
 import { Dia, DiaDados } from '../../../shared/models/dia.model';
 import { Item, ItemDados, TIPOS_ITEM } from '../../../shared/models/item.model';
 import { Semana, SemanaCompleta, SemanaDados } from '../../../shared/models/semana.model';
+import { isoParaData } from '../../../shared/utils/data';
 import { DiaSemanaPipe } from '../../../shared/pipes/dia-semana.pipe';
 import { MinutosParaTempoPipe } from '../../../shared/pipes/minutos-para-tempo.pipe';
 import { BlocosService } from '../blocos.service';
@@ -39,6 +41,7 @@ import { SemanaFormDialogComponent } from '../semana-form/semana-form-dialog.com
 @Component({
   selector: 'app-plano-bloco',
   imports: [
+    DatePipe,
     RouterLink,
     MatButtonModule,
     MatExpansionModule,
@@ -106,6 +109,14 @@ export class PlanoBlocoComponent implements OnInit {
     return `${n} ${n === 1 ? singular : plural}`;
   }
 
+  protected paraData = isoParaData;
+
+  /** Limites do calendário das semanas: período do bloco, quando definido. */
+  private limitesBloco(): { minData: Date | null; maxData: Date | null } {
+    const b = this.bloco();
+    return { minData: isoParaData(b?.data_inicio), maxData: isoParaData(b?.data_fim) };
+  }
+
   protected tipo(valor: Item['tipo']) {
     return TIPOS_ITEM.find((t) => t.valor === valor) ?? null;
   }
@@ -118,6 +129,7 @@ export class PlanoBlocoComponent implements OnInit {
       undefined,
       (d) => this.planoService.criarSemana(this.blocoId(), d),
       'Semana criada.',
+      { ...this.limitesBloco(), proximoNumero: this.semanas().length + 1 },
     );
   }
 
@@ -127,6 +139,7 @@ export class PlanoBlocoComponent implements OnInit {
       semana,
       (d) => this.planoService.atualizarSemana(semana.id, d),
       'Semana atualizada.',
+      this.limitesBloco(),
     );
   }
 
@@ -204,8 +217,9 @@ export class PlanoBlocoComponent implements OnInit {
     valor: V | undefined,
     salvar: (dados: D) => Promise<void>,
     mensagemSucesso: string,
+    extra: object = {},
   ): Promise<void> {
-    const dados: FormDialogData<V, D> = { valor, salvar };
+    const dados: FormDialogData<V, D> = { valor, salvar, ...extra };
     const salvou = await firstValueFrom(
       this.dialog
         .open<unknown, FormDialogData<V, D>, boolean>(componente, {

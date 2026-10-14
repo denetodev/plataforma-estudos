@@ -50,6 +50,9 @@
           <mat-expansion-panel-header>
             <mat-panel-title>{{ semana.label }}</mat-panel-title>
             <mat-panel-description>
+              @if (paraData(semana.data_inicio); as inicio) {
+                {{ inicio | date: 'dd/MM' }}@if (paraData(semana.data_fim); as fim) { – {{ fim | date: 'dd/MM' }}} ·
+              }
               {{ plural(semana.dias.length, 'dia', 'dias') }} · {{ plural(totalItensSemana(semana), 'item', 'itens') }}
             </mat-panel-description>
           </mat-expansion-panel-header>
