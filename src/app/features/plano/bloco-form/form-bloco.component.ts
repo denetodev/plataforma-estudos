@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -15,12 +16,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 
 import { BlocoDados, CORES_BLOCO } from '../../../shared/models/bloco.model';
+import { dataParaIso, isoParaData } from '../../../shared/utils/data';
 import { BlocosService } from '../blocos.service';
 
-/** `data_fim` não pode ser anterior a `data_inicio` (ISO compara como texto). */
+/** `data_fim` não pode ser anterior a `data_inicio`. */
 function periodoValido(grupo: AbstractControl): ValidationErrors | null {
-  const inicio = grupo.get('data_inicio')?.value as string;
-  const fim = grupo.get('data_fim')?.value as string;
+  const inicio = grupo.get('data_inicio')?.value as Date | null;
+  const fim = grupo.get('data_fim')?.value as Date | null;
   return inicio && fim && fim < inicio ? { periodoInvalido: true } : null;
 }
 
@@ -30,6 +32,7 @@ function periodoValido(grupo: AbstractControl): ValidationErrors | null {
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
+    MatDatepickerModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -59,8 +62,8 @@ export class FormBlocoComponent implements OnInit {
     {
       titulo: ['', [Validators.required, Validators.maxLength(150)]],
       cor: [CORES_BLOCO[0] as string],
-      data_inicio: [''],
-      data_fim: [''],
+      data_inicio: [null as Date | null],
+      data_fim: [null as Date | null],
     },
     { validators: periodoValido },
   );
@@ -79,8 +82,8 @@ export class FormBlocoComponent implements OnInit {
       this.form.patchValue({
         titulo: bloco.titulo,
         cor: bloco.cor ?? CORES_BLOCO[0],
-        data_inicio: bloco.data_inicio ?? '',
-        data_fim: bloco.data_fim ?? '',
+        data_inicio: isoParaData(bloco.data_inicio),
+        data_fim: isoParaData(bloco.data_fim),
       });
     } catch (e) {
       this.erro.set(e instanceof Error ? e.message : 'Não foi possível carregar o bloco.');
@@ -126,8 +129,8 @@ export class FormBlocoComponent implements OnInit {
     return {
       titulo: v.titulo.trim(),
       cor: v.cor || null,
-      data_inicio: v.data_inicio || null,
-      data_fim: v.data_fim || null,
+      data_inicio: dataParaIso(v.data_inicio),
+      data_fim: dataParaIso(v.data_fim),
     };
   }
 }

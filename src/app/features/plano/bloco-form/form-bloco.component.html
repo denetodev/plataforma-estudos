@@ -58,12 +58,30 @@
       <div class="form__linha">
         <mat-form-field appearance="outline">
           <mat-label>Início</mat-label>
-          <input matInput type="date" formControlName="data_inicio" />
+          <input matInput [matDatepicker]="pickerInicio" formControlName="data_inicio" placeholder="dd/mm/aaaa" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerInicio" />
+          <mat-datepicker #pickerInicio />
+          @if (form.controls.data_inicio.hasError('matDatepickerParse')) {
+            <mat-error>Data inválida. Use o formato dd/mm/aaaa.</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Fim</mat-label>
-          <input matInput type="date" formControlName="data_fim" />
+          <input
+            matInput
+            [matDatepicker]="pickerFim"
+            [min]="form.controls.data_inicio.value"
+            formControlName="data_fim"
+            placeholder="dd/mm/aaaa"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerFim" />
+          <mat-datepicker #pickerFim [startAt]="form.controls.data_inicio.value" />
+          @if (form.controls.data_fim.hasError('matDatepickerParse')) {
+            <mat-error>Data inválida. Use o formato dd/mm/aaaa.</mat-error>
+          } @else if (form.controls.data_fim.hasError('matDatepickerMin')) {
+            <mat-error>O fim não pode ser anterior ao início.</mat-error>
+          }
         </mat-form-field>
       </div>
       @if (form.hasError('periodoInvalido') && form.controls.data_fim.touched) {

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -11,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 
 import { ConcursoDados, NIVEIS_CONCURSO } from '../../../shared/models/concurso.model';
+import { dataParaIso, isoParaData } from '../../../shared/utils/data';
 import { ConcursosService } from '../concursos.service';
 
 @Component({
@@ -19,6 +21,7 @@ import { ConcursosService } from '../concursos.service';
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
+    MatDatepickerModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -49,7 +52,7 @@ export class FormConcursoComponent implements OnInit {
     orgao: ['', [Validators.maxLength(100)]],
     cargo: ['', [Validators.maxLength(150)]],
     nivel: [''],
-    data_prova: [''],
+    data_prova: [null as Date | null],
     ativo: [true],
   });
 
@@ -69,7 +72,7 @@ export class FormConcursoComponent implements OnInit {
         orgao: concurso.orgao ?? '',
         cargo: concurso.cargo ?? '',
         nivel: concurso.nivel ?? '',
-        data_prova: concurso.data_prova ?? '',
+        data_prova: isoParaData(concurso.data_prova),
         ativo: concurso.ativo,
       });
     } catch (e) {
@@ -113,7 +116,7 @@ export class FormConcursoComponent implements OnInit {
       orgao: v.orgao.trim() || null,
       cargo: v.cargo.trim() || null,
       nivel: v.nivel || null,
-      data_prova: v.data_prova || null,
+      data_prova: dataParaIso(v.data_prova),
       ativo: v.ativo,
     };
   }
