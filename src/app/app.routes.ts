@@ -64,6 +64,14 @@ export const routes: Routes = [
           import('./features/plano/bloco-form/form-bloco.component').then((m) => m.FormBlocoComponent),
       },
       {
+        path: 'concursos/:id/progresso',
+        title: `Progresso · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/progresso/dashboard/dashboard-progresso.component').then(
+            (m) => m.DashboardProgressoComponent,
+          ),
+      },
+      {
         path: 'concursos/:id/editar',
         title: `Editar concurso · ${TITULO}`,
         loadComponent: () =>

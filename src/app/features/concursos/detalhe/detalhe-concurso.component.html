@@ -31,10 +31,16 @@
         }
       </div>
     </div>
-    <a mat-stroked-button [routerLink]="['/concursos', c.id, 'editar']">
-      <mat-icon>edit</mat-icon>
-      Editar concurso
-    </a>
+    <div class="cabecalho__acoes">
+      <a mat-stroked-button [routerLink]="['/concursos', c.id, 'progresso']">
+        <mat-icon>insights</mat-icon>
+        Ver progresso
+      </a>
+      <a mat-stroked-button [routerLink]="['/concursos', c.id, 'editar']">
+        <mat-icon>edit</mat-icon>
+        Editar concurso
+      </a>
+    </div>
   </header>
 
   <section class="geral" aria-label="Progresso geral">
