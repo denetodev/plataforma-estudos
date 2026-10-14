@@ -50,6 +50,14 @@ export const routes: Routes = [
           import('./features/plano/bloco-form/form-bloco.component').then((m) => m.FormBlocoComponent),
       },
       {
+        path: 'concursos/:id/bloco/:blocoId',
+        title: `Plano do bloco · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/plano/bloco-plano/plano-bloco.component').then(
+            (m) => m.PlanoBlocoComponent,
+          ),
+      },
+      {
         path: 'concursos/:id/bloco/:blocoId/editar',
         title: `Editar bloco · ${TITULO}`,
         loadComponent: () =>

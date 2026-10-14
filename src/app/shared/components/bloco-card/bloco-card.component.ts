@@ -3,13 +3,14 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { RouterLink } from '@angular/router';
 
 import { BlocoResumo } from '../../models/bloco.model';
 import { ProgressBarComponent } from '../progress-bar/progress-bar.component';
 
 @Component({
   selector: 'app-bloco-card',
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatMenuModule, ProgressBarComponent],
+  imports: [DatePipe, RouterLink, MatButtonModule, MatIconModule, MatMenuModule, ProgressBarComponent],
   templateUrl: './bloco-card.component.html',
   styleUrl: './bloco-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

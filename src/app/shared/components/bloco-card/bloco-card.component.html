@@ -1,6 +1,10 @@
 <article class="bloco" [style.--cor-bloco]="cor()">
   <header class="bloco__cabecalho">
-    <h3 class="bloco__titulo">{{ bloco().titulo }}</h3>
+    <h3 class="bloco__titulo">
+      <a class="bloco__link" [routerLink]="['/concursos', bloco().concurso_id, 'bloco', bloco().id]">{{
+        bloco().titulo
+      }}</a>
+    </h3>
     <button
       mat-icon-button
       type="button"
