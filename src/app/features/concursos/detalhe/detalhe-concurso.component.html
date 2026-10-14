@@ -1,0 +1,82 @@
+<a class="voltar" routerLink="/concursos">
+  <mat-icon>arrow_back</mat-icon>
+  Voltar para concursos
+</a>
+
+@if (carregando()) {
+  <div class="carregando" role="status" aria-live="polite">
+    <mat-spinner diameter="36" />
+    <span>Carregando concurso…</span>
+  </div>
+} @else if (erro(); as mensagem) {
+  <app-empty-state icone="error_outline" titulo="Algo deu errado" [descricao]="mensagem">
+    <button mat-flat-button type="button" (click)="carregar()">Tentar novamente</button>
+  </app-empty-state>
+} @else if (concurso(); as c) {
+  <header class="cabecalho">
+    <div class="cabecalho__info">
+      <h1>{{ c.nome }}</h1>
+      @if (subtitulo()) {
+        <p>{{ subtitulo() }}</p>
+      }
+      <div class="cabecalho__meta">
+        @if (c.nivel) {
+          <span class="etiqueta">{{ c.nivel }}</span>
+        }
+        @if (!c.ativo) {
+          <span class="etiqueta etiqueta--cinza">Arquivado</span>
+        }
+        @if (dataProva(); as prova) {
+          <span class="cabecalho__prova"><mat-icon>event</mat-icon>Prova em {{ prova | date: 'dd/MM/yyyy' }}</span>
+        }
+      </div>
+    </div>
+    <a mat-stroked-button [routerLink]="['/concursos', c.id, 'editar']">
+      <mat-icon>edit</mat-icon>
+      Editar concurso
+    </a>
+  </header>
+
+  <section class="geral" aria-label="Progresso geral">
+    <div class="geral__topo">
+      <span>
+        @if (totais().total > 0) {
+          {{ totais().concluidos }} de {{ totais().total }} itens concluídos
+        } @else {
+          Nenhum item de estudo cadastrado
+        }
+      </span>
+      <strong>{{ totais().percentual }}%</strong>
+    </div>
+    <app-progress-bar [valor]="totais().percentual" rotulo="Progresso geral do concurso" />
+  </section>
+
+  <div class="blocos__cabecalho">
+    <h2>Blocos de estudo</h2>
+    <a mat-flat-button [routerLink]="['/concursos', c.id, 'bloco', 'novo']">
+      <mat-icon>add</mat-icon>
+      Novo bloco
+    </a>
+  </div>
+
+  @if (blocos().length === 0) {
+    <app-empty-state
+      icone="view_agenda"
+      titulo="Nenhum bloco ainda"
+      descricao="Blocos agrupam os temas do concurso (por exemplo, uma matéria ou um período). Crie o primeiro para começar o plano."
+    >
+      <a mat-flat-button [routerLink]="['/concursos', c.id, 'bloco', 'novo']">
+        <mat-icon>add</mat-icon>
+        Criar bloco
+      </a>
+    </app-empty-state>
+  } @else {
+    <ul class="grade">
+      @for (bloco of blocos(); track bloco.id) {
+        <li>
+          <app-bloco-card [bloco]="bloco" (editar)="editarBloco($event)" (excluir)="excluirBloco($event)" />
+        </li>
+      }
+    </ul>
+  }
+}

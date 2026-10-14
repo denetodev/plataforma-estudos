@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { RouterLink } from '@angular/router';
 
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 import { ConcursoResumo } from '../../../shared/models/concurso.model';
@@ -11,7 +12,7 @@ const MS_POR_DIA = 86_400_000;
 
 @Component({
   selector: 'app-concurso-card',
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatMenuModule, ProgressBarComponent],
+  imports: [DatePipe, RouterLink, MatButtonModule, MatIconModule, MatMenuModule, ProgressBarComponent],
   templateUrl: './concurso-card.component.html',
   styleUrl: './concurso-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

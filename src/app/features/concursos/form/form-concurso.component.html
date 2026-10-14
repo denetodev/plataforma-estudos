@@ -62,8 +62,13 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Data da prova</mat-label>
-          <input matInput type="date" formControlName="data_prova" />
+          <input matInput [matDatepicker]="pickerProva" formControlName="data_prova" placeholder="dd/mm/aaaa" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerProva" />
+          <mat-datepicker #pickerProva />
           <mat-hint>Deixe em branco se ainda não foi divulgada.</mat-hint>
+          @if (form.controls.data_prova.hasError('matDatepickerParse')) {
+            <mat-error>Data inválida. Use o formato dd/mm/aaaa.</mat-error>
+          }
         </mat-form-field>
       </div>
 

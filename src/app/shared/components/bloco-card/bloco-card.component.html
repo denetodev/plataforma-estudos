@@ -1,0 +1,50 @@
+<article class="bloco" [style.--cor-bloco]="cor()">
+  <header class="bloco__cabecalho">
+    <h3 class="bloco__titulo">{{ bloco().titulo }}</h3>
+    <button
+      mat-icon-button
+      type="button"
+      [matMenuTriggerFor]="menu"
+      [attr.aria-label]="'Ações para ' + bloco().titulo"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu" xPosition="before">
+      <button mat-menu-item type="button" (click)="editar.emit(bloco())">
+        <mat-icon>edit</mat-icon>
+        <span>Editar</span>
+      </button>
+      <button mat-menu-item type="button" (click)="excluir.emit(bloco())">
+        <mat-icon>delete_outline</mat-icon>
+        <span>Excluir</span>
+      </button>
+    </mat-menu>
+  </header>
+
+  <p class="bloco__periodo">
+    <mat-icon>date_range</mat-icon>
+    @if (inicio() && fim()) {
+      {{ inicio() | date: 'dd/MM' }} a {{ fim() | date: 'dd/MM/yyyy' }}
+    } @else if (inicio()) {
+      A partir de {{ inicio() | date: 'dd/MM/yyyy' }}
+    } @else if (fim()) {
+      Até {{ fim() | date: 'dd/MM/yyyy' }}
+    } @else {
+      Sem período definido
+    }
+  </p>
+
+  <footer class="bloco__progresso">
+    <div class="bloco__progresso-topo">
+      <span>
+        @if (bloco().total_itens > 0) {
+          {{ bloco().itens_concluidos }}/{{ bloco().total_itens }} itens
+        } @else {
+          Sem itens ainda
+        }
+      </span>
+      <strong>{{ bloco().percentual }}%</strong>
+    </div>
+    <app-progress-bar [valor]="bloco().percentual" [cor]="cor()" rotulo="Progresso no bloco" />
+  </footer>
+</article>
