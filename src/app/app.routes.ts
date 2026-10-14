@@ -1,24 +1,49 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, visitanteGuard } from './core/auth/auth.guard';
+import { ShellComponent } from './core/layout/shell.component';
+
+const TITULO = 'Plataforma de Estudos';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'concursos' },
   {
     path: 'login',
-    title: 'Entrar · Plataforma de Estudos',
+    title: `Entrar · ${TITULO}`,
     canActivate: [visitanteGuard],
     loadComponent: () =>
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'concursos',
-    title: 'Concursos · Plataforma de Estudos',
+    path: '',
+    component: ShellComponent,
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/concursos/lista/lista-concursos.component').then(
-        (m) => m.ListaConcursosComponent,
-      ),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'concursos' },
+      {
+        path: 'concursos',
+        title: `Concursos · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/concursos/lista/lista-concursos.component').then(
+            (m) => m.ListaConcursosComponent,
+          ),
+      },
+      {
+        path: 'concursos/novo',
+        title: `Novo concurso · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/concursos/form/form-concurso.component').then(
+            (m) => m.FormConcursoComponent,
+          ),
+      },
+      {
+        path: 'concursos/:id/editar',
+        title: `Editar concurso · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/concursos/form/form-concurso.component').then(
+            (m) => m.FormConcursoComponent,
+          ),
+      },
+    ],
   },
   { path: '**', redirectTo: 'concursos' },
 ];

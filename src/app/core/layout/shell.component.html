@@ -1,0 +1,49 @@
+<div class="shell">
+  <header class="shell__topo">
+    <button
+      mat-icon-button
+      type="button"
+      (click)="alternarMenu()"
+      aria-label="Abrir menu"
+      [attr.aria-expanded]="menuAberto()"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span class="shell__topo-titulo">Plataforma de Estudos</span>
+  </header>
+
+  @if (menuAberto()) {
+    <button class="shell__fundo" type="button" aria-label="Fechar menu" (click)="alternarMenu()"></button>
+  }
+
+  <aside class="lateral" [class.lateral--aberta]="menuAberto()">
+    <a class="lateral__marca" routerLink="/concursos">
+      <span class="lateral__logo" aria-hidden="true"><mat-icon>school</mat-icon></span>
+      <span>Plataforma<br />de Estudos</span>
+    </a>
+
+    <nav class="lateral__nav" aria-label="Navegação principal">
+      @for (item of itens; track item.rota) {
+        <a class="lateral__item" [routerLink]="item.rota" routerLinkActive="lateral__item--ativo">
+          <mat-icon>{{ item.icone }}</mat-icon>
+          {{ item.rotulo }}
+        </a>
+      }
+    </nav>
+
+    <div class="lateral__usuario">
+      <span class="lateral__avatar" aria-hidden="true">{{ inicial() }}</span>
+      <div class="lateral__dados">
+        <strong>{{ perfil()?.nome ?? 'Usuário' }}</strong>
+        <span>{{ isAdmin() ? 'Administrador' : 'Estudante' }}</span>
+      </div>
+      <button mat-icon-button type="button" (click)="sair()" aria-label="Sair" title="Sair">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </aside>
+
+  <main class="shell__conteudo">
+    <router-outlet />
+  </main>
+</div>
