@@ -1,0 +1,86 @@
+<a class="voltar" [routerLink]="['/concursos', id()]">
+  <mat-icon>arrow_back</mat-icon>
+  Voltar para o concurso
+</a>
+
+<section class="painel">
+  <h1>{{ editando ? 'Editar bloco' : 'Novo bloco' }}</h1>
+  <p class="painel__sub">
+    Um bloco agrupa um tema ou período de estudo dentro do concurso.
+  </p>
+
+  @if (carregando()) {
+    <div class="painel__carregando" role="status">
+      <mat-spinner diameter="32" />
+      <span>Carregando…</span>
+    </div>
+  } @else {
+    <form class="form" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      @if (erro(); as mensagem) {
+        <div class="form__erro" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ mensagem }}</span>
+        </div>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Título</mat-label>
+        <input matInput formControlName="titulo" placeholder="Ex.: Bloco 1 · Língua Portuguesa" />
+        @if (form.controls.titulo.hasError('required')) {
+          <mat-error>Informe o título do bloco.</mat-error>
+        } @else if (form.controls.titulo.hasError('maxlength')) {
+          <mat-error>Use no máximo 150 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <fieldset class="cores">
+        <legend>Cor do bloco</legend>
+        <div class="cores__lista" role="radiogroup" aria-label="Cor do bloco">
+          @for (cor of cores; track cor) {
+            <button
+              type="button"
+              class="cores__item"
+              role="radio"
+              [style.background]="cor"
+              [attr.aria-checked]="form.controls.cor.value === cor"
+              [attr.aria-label]="'Cor ' + cor"
+              [class.cores__item--ativo]="form.controls.cor.value === cor"
+              (click)="escolherCor(cor)"
+            >
+              @if (form.controls.cor.value === cor) {
+                <mat-icon>check</mat-icon>
+              }
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <div class="form__linha">
+        <mat-form-field appearance="outline">
+          <mat-label>Início</mat-label>
+          <input matInput type="date" formControlName="data_inicio" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fim</mat-label>
+          <input matInput type="date" formControlName="data_fim" />
+        </mat-form-field>
+      </div>
+      @if (form.hasError('periodoInvalido') && form.controls.data_fim.touched) {
+        <p class="form__aviso" role="alert">A data de fim não pode ser anterior à data de início.</p>
+      }
+
+      <div class="form__acoes">
+        <a mat-button [routerLink]="['/concursos', id()]">Cancelar</a>
+        <button mat-flat-button type="submit" [disabled]="salvando()">
+          @if (salvando()) {
+            <mat-spinner diameter="20" />
+            Salvando…
+          } @else {
+            {{ editando ? 'Salvar alterações' : 'Criar bloco' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</section>

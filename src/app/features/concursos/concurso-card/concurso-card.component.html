@@ -1,7 +1,9 @@
 <article class="card" [class.card--inativo]="!concurso().ativo">
   <header class="card__cabecalho">
     <div class="card__titulos">
-      <h2 class="card__nome">{{ concurso().nome }}</h2>
+      <h2 class="card__nome">
+        <a class="card__link" [routerLink]="['/concursos', concurso().id]">{{ concurso().nome }}</a>
+      </h2>
       @if (subtitulo()) {
         <p class="card__subtitulo">{{ subtitulo() }}</p>
       }

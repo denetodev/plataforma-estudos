@@ -1,4 +1,5 @@
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -39,6 +40,33 @@
     font-weight: 700;
     line-height: 1.3;
     overflow-wrap: anywhere;
+  }
+
+  &__link {
+    color: inherit;
+    text-decoration: none;
+
+    // Torna o card inteiro clicável sem aninhar o menu de ações dentro do link.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      &::after {
+        outline: 2px solid var(--app-primaria);
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__cabecalho button {
+    position: relative;
+    z-index: 1;
   }
 
   &__subtitulo {

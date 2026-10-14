@@ -36,6 +36,26 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'concursos/:id',
+        title: `Concurso · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/concursos/detalhe/detalhe-concurso.component').then(
+            (m) => m.DetalheConcursoComponent,
+          ),
+      },
+      {
+        path: 'concursos/:id/bloco/novo',
+        title: `Novo bloco · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/plano/bloco-form/form-bloco.component').then((m) => m.FormBlocoComponent),
+      },
+      {
+        path: 'concursos/:id/bloco/:blocoId/editar',
+        title: `Editar bloco · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/plano/bloco-form/form-bloco.component').then((m) => m.FormBlocoComponent),
+      },
+      {
         path: 'concursos/:id/editar',
         title: `Editar concurso · ${TITULO}`,
         loadComponent: () =>
