@@ -5,14 +5,14 @@
 -- INSTRUÇÕES:
 -- 1. Aplique primeiro o schema (001_schema_inicial.sql)
 -- 2. Crie o usuário do Lucas no Supabase Auth (Authentication > Users)
--- 3. Atualize o UUID abaixo com o ID real do Lucas
--- 4. Execute este script no SQL Editor do Supabase
+-- 3. Troque o e-mail abaixo pelo e-mail real do Lucas (o ID é buscado sozinho)
+-- 4. Execute este script no SQL Editor do Supabase (uma única vez)
 -- ============================================================
 
--- Substitua pelo UUID real do Lucas após criar o usuário no Auth
 DO $$
 DECLARE
-  lucas_id   uuid := '00000000-0000-0000-0000-000000000001'; -- <<< SUBSTITUIR
+  lucas_email text := 'COLOQUE_AQUI_O_EMAIL_DO_LUCAS'; -- <<< SUBSTITUIR
+  lucas_id    uuid;
   concurso_id uuid;
 
   -- Blocos
@@ -33,7 +33,19 @@ DECLARE
 
 BEGIN
 
-  -- Atualiza role do Lucas para user (caso o trigger tenha criado como padrão)
+  SELECT id INTO lucas_id FROM auth.users WHERE lower(email) = lower(lucas_email);
+  IF lucas_id IS NULL THEN
+    RAISE EXCEPTION 'Usuário "%" não encontrado em auth.users. Crie-o em Authentication > Users e ajuste lucas_email.', lucas_email;
+  END IF;
+
+  -- Evita duplicar o cronograma se o script for executado mais de uma vez
+  IF EXISTS (
+    SELECT 1 FROM concursos
+    WHERE user_id = lucas_id AND nome = 'INSS 2026 — Técnico do Seguro Social'
+  ) THEN
+    RAISE EXCEPTION 'O concurso INSS 2026 já existe para este usuário; seed não executado.';
+  END IF;
+
   UPDATE perfis SET nome = 'Lucas' WHERE id = lucas_id;
 
   -- --------------------------------------------------------

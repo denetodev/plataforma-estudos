@@ -54,6 +54,12 @@
     color: var(--app-texto-suave);
   }
 
+  &__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   &__meta {
     display: flex;
     flex-wrap: wrap;

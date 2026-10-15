@@ -76,6 +76,15 @@ $ponto-quebra: 900px;
     flex: 1;
   }
 
+  &__secao {
+    margin: 16px 12px 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--app-texto-suave);
+  }
+
   &__item {
     display: flex;
     align-items: center;

@@ -1,0 +1,288 @@
+:host {
+  display: block;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: var(--app-texto-suave);
+  text-decoration: none;
+  font-size: 0.9rem;
+
+  &:hover {
+    color: var(--app-primaria-escura);
+  }
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 72px 0;
+  color: var(--app-texto-suave);
+}
+
+.cabecalho {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--app-texto-suave);
+  }
+}
+
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borda);
+
+  &--donut {
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__icone {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    color: var(--app-primaria-escura);
+    background: rgb(99 102 241 / 12%);
+  }
+
+  &__valor {
+    font-size: 1.9rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  &__rotulo {
+    font-weight: 600;
+  }
+
+  &__legenda {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--app-texto-suave);
+  }
+}
+
+.donut {
+  position: relative;
+  width: 140px;
+  height: 140px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  circle {
+    fill: none;
+    stroke-width: 12;
+  }
+
+  &__trilho {
+    stroke: var(--app-borda);
+  }
+
+  &__valor {
+    stroke: var(--app-primaria);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+
+  &__centro {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    strong {
+      font-size: 1.7rem;
+      letter-spacing: -0.02em;
+    }
+
+    span {
+      font-size: 0.75rem;
+      color: var(--app-texto-suave);
+    }
+  }
+}
+
+.painel {
+  margin-bottom: 20px;
+  padding: 22px 24px;
+  border-radius: 18px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borda);
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  &__sub {
+    margin: 2px 0 16px;
+    font-size: 0.85rem;
+    color: var(--app-texto-suave);
+  }
+}
+
+.barras {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 6px;
+  align-items: end;
+}
+
+.barra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+
+  &__qtd {
+    height: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--app-primaria-escura);
+  }
+
+  &__coluna {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    max-width: 28px;
+    height: 120px;
+    border-radius: 8px;
+    background: #f1f2f9;
+    overflow: hidden;
+  }
+
+  &__preenchimento {
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    background: var(--app-primaria);
+    transition: height 0.4s ease;
+  }
+
+  &__dia {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  &__semana {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--app-texto-suave);
+  }
+
+  &--hoje &__dia {
+    color: var(--app-primaria-escura);
+  }
+
+  &--hoje &__coluna {
+    outline: 2px solid rgb(99 102 241 / 35%);
+  }
+}
+
+.blocos {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__titulo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-weight: 600;
+    color: inherit;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+
+    &:hover {
+      color: var(--app-primaria-escura);
+    }
+  }
+
+  &__ponto {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  &__meta {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--app-texto-suave);
+  }
+}
+
+@media (max-width: 760px) {
+  .resumo {
+    grid-template-columns: 1fr;
+  }
+
+  .barras {
+    gap: 3px;
+  }
+
+  .barra__semana {
+    display: none;
+  }
+}

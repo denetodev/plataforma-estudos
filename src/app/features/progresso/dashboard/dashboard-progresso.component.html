@@ -1,0 +1,126 @@
+<a class="voltar" [routerLink]="['/concursos', id()]">
+  <mat-icon>arrow_back</mat-icon>
+  Voltar para o concurso
+</a>
+
+@if (carregando()) {
+  <div class="carregando" role="status" aria-live="polite">
+    <mat-spinner diameter="36" />
+    <span>Carregando progresso…</span>
+  </div>
+} @else if (erro(); as mensagem) {
+  <app-empty-state icone="error_outline" titulo="Algo deu errado" [descricao]="mensagem">
+    <button mat-flat-button type="button" (click)="carregar()">Tentar novamente</button>
+  </app-empty-state>
+} @else if (concurso(); as c) {
+  @if (dados(); as d) {
+    <header class="cabecalho">
+      <h1>Progresso</h1>
+      <p>{{ c.nome }}</p>
+    </header>
+
+    @if (d.total === 0) {
+      <app-empty-state
+        icone="insights"
+        titulo="Ainda não há itens de estudo"
+        descricao="Crie blocos, semanas, dias e itens no plano para acompanhar seu progresso aqui."
+      >
+        <a mat-flat-button [routerLink]="['/concursos', c.id]">Ir para o plano</a>
+      </app-empty-state>
+    } @else {
+      <section class="resumo">
+        <div class="cartao cartao--donut">
+          <div class="donut">
+            <svg viewBox="0 0 120 120" role="img" [attr.aria-label]="'Progresso geral: ' + d.percentual + '%'">
+              <circle class="donut__trilho" cx="60" cy="60" [attr.r]="raio" />
+              <circle
+                class="donut__valor"
+                cx="60"
+                cy="60"
+                [attr.r]="raio"
+                [attr.stroke-dasharray]="circunferencia"
+                [attr.stroke-dashoffset]="desvioDonut()"
+              />
+            </svg>
+            <div class="donut__centro">
+              <strong>{{ d.percentual }}%</strong>
+              <span>concluído</span>
+            </div>
+          </div>
+          <p class="cartao__legenda">{{ d.concluidos }} de {{ d.total }} itens</p>
+        </div>
+
+        <div class="cartao">
+          <span class="cartao__icone"><mat-icon>schedule</mat-icon></span>
+          <strong class="cartao__valor">{{ d.minutosConcluidos | minutosParaTempo }}</strong>
+          <span class="cartao__rotulo">Horas estudadas</span>
+          <span class="cartao__legenda">
+            de {{ d.minutosTotal ? (d.minutosTotal | minutosParaTempo) : '0min' }} planejadas
+          </span>
+        </div>
+
+        <div class="cartao">
+          <span class="cartao__icone"><mat-icon>event_available</mat-icon></span>
+          <strong class="cartao__valor">{{ d.diasComEstudo }}</strong>
+          <span class="cartao__rotulo">{{ d.diasComEstudo === 1 ? 'Dia com estudo' : 'Dias com estudo' }}</span>
+          <span class="cartao__legenda">{{ itensNos14Dias() }} itens nos últimos 14 dias</span>
+        </div>
+      </section>
+
+      <section class="painel" aria-labelledby="titulo-dias">
+        <h2 id="titulo-dias">Itens concluídos por dia</h2>
+        <p class="painel__sub">Últimos 14 dias</p>
+        <div class="barras" role="list">
+          @for (dia of d.ultimosDias; track dia.data.getTime()) {
+            <div
+              class="barra"
+              role="listitem"
+              [class.barra--hoje]="ehHoje(dia.data)"
+              [attr.aria-label]="(dia.data | date: 'dd/MM') + ': ' + dia.quantidade + ' itens concluídos'"
+              [title]="(dia.data | date: 'dd/MM') + ' — ' + dia.quantidade + ' concluído(s)'"
+            >
+              <span class="barra__qtd">{{ dia.quantidade || '' }}</span>
+              <div class="barra__coluna">
+                <div class="barra__preenchimento" [style.height.%]="altura(dia.quantidade)"></div>
+              </div>
+              <span class="barra__dia">{{ dia.data | date: 'dd' }}</span>
+              <span class="barra__semana">{{ dia.data | date: 'EEEEE' }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="painel" aria-labelledby="titulo-blocos">
+        <h2 id="titulo-blocos">Progresso por bloco</h2>
+        <ul class="blocos">
+          @for (bloco of d.blocos; track bloco.id) {
+            <li class="bloco">
+              <div class="bloco__topo">
+                <a class="bloco__titulo" [routerLink]="['/concursos', c.id, 'bloco', bloco.id]">
+                  <span class="bloco__ponto" [style.background]="bloco.cor ?? 'var(--app-primaria)'"></span>
+                  {{ bloco.titulo }}
+                </a>
+                <strong>{{ bloco.percentual }}%</strong>
+              </div>
+              <app-progress-bar
+                [valor]="bloco.percentual"
+                [cor]="bloco.cor ?? 'var(--app-primaria)'"
+                [rotulo]="'Progresso em ' + bloco.titulo"
+              />
+              <p class="bloco__meta">
+                @if (bloco.total > 0) {
+                  {{ bloco.concluidos }}/{{ bloco.total }} itens
+                  @if (bloco.minutosConcluidos) {
+                    · {{ bloco.minutosConcluidos | minutosParaTempo }} estudadas
+                  }
+                } @else {
+                  Sem itens ainda
+                }
+              </p>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+}

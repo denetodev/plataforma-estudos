@@ -1,0 +1,58 @@
+<header class="pagina__cabecalho">
+  <div>
+    <h1>Todos os concursos</h1>
+    <p>Concursos de todos os usuários.</p>
+  </div>
+  <label class="busca">
+    <mat-icon aria-hidden="true">search</mat-icon>
+    <input
+      type="search"
+      placeholder="Buscar por concurso, órgão ou usuário"
+      aria-label="Buscar concursos"
+      [value]="busca()"
+      (input)="buscar($event)"
+    />
+  </label>
+</header>
+
+@if (carregando()) {
+  <div class="carregando" role="status" aria-live="polite">
+    <mat-spinner diameter="36" />
+    <span>Carregando concursos…</span>
+  </div>
+} @else if (erro(); as mensagem) {
+  <app-empty-state icone="error_outline" titulo="Algo deu errado" [descricao]="mensagem">
+    <button mat-flat-button type="button" (click)="carregar()">Tentar novamente</button>
+  </app-empty-state>
+} @else if (filtrados().length === 0) {
+  <app-empty-state
+    icone="search_off"
+    titulo="Nenhum concurso encontrado"
+    [descricao]="busca() ? 'Tente outro termo de busca.' : 'Ainda não há concursos cadastrados.'"
+  />
+} @else {
+  <ul class="lista">
+    @for (c of filtrados(); track c.id) {
+      <li>
+        <a class="linha" [routerLink]="['/concursos', c.id]">
+          <div class="linha__principal">
+            <strong>{{ c.nome }}</strong>
+            <span>{{ subtitulo(c) }}</span>
+          </div>
+          <span class="linha__dono"><mat-icon aria-hidden="true">person</mat-icon>{{ c.dono }}</span>
+          <span class="linha__prova">
+            @if (paraData(c.data_prova); as prova) {
+              {{ prova | date: 'dd/MM/yyyy' }}
+            } @else {
+              Sem data
+            }
+          </span>
+          @if (!c.ativo) {
+            <span class="etiqueta">Arquivado</span>
+          }
+          <mat-icon class="linha__seta" aria-hidden="true">chevron_right</mat-icon>
+        </a>
+      </li>
+    }
+  </ul>
+}

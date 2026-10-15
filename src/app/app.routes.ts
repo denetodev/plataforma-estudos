@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { adminGuard } from './core/auth/admin.guard';
 import { authGuard, visitanteGuard } from './core/auth/auth.guard';
 import { ShellComponent } from './core/layout/shell.component';
 
@@ -64,12 +65,51 @@ export const routes: Routes = [
           import('./features/plano/bloco-form/form-bloco.component').then((m) => m.FormBlocoComponent),
       },
       {
+        path: 'concursos/:id/cronograma',
+        title: `Cronograma · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/cronograma/semana-view/cronograma-semanal.component').then(
+            (m) => m.CronogramaSemanalComponent,
+          ),
+      },
+      {
+        path: 'concursos/:id/progresso',
+        title: `Progresso · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/progresso/dashboard/dashboard-progresso.component').then(
+            (m) => m.DashboardProgressoComponent,
+          ),
+      },
+      {
         path: 'concursos/:id/editar',
         title: `Editar concurso · ${TITULO}`,
         loadComponent: () =>
           import('./features/concursos/form/form-concurso.component').then(
             (m) => m.FormConcursoComponent,
           ),
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'usuarios' },
+          {
+            path: 'usuarios',
+            title: `Usuários · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/admin/usuarios/admin-usuarios.component').then(
+                (m) => m.AdminUsuariosComponent,
+              ),
+          },
+          {
+            path: 'concursos',
+            title: `Todos os concursos · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/admin/concursos-todos/admin-concursos-todos.component').then(
+                (m) => m.AdminConcursosTodosComponent,
+              ),
+          },
+        ],
       },
     ],
   },

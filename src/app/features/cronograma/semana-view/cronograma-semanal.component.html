@@ -1,0 +1,134 @@
+<a class="voltar" [routerLink]="['/concursos', id()]">
+  <mat-icon>arrow_back</mat-icon>
+  Voltar para o concurso
+</a>
+
+@if (carregando()) {
+  <div class="carregando" role="status" aria-live="polite">
+    <mat-spinner diameter="36" />
+    <span>Carregando cronograma…</span>
+  </div>
+} @else if (erro(); as mensagem) {
+  <app-empty-state icone="error_outline" titulo="Algo deu errado" [descricao]="mensagem">
+    <button mat-flat-button type="button" (click)="carregar()">Tentar novamente</button>
+  </app-empty-state>
+} @else if (concurso(); as c) {
+  <header class="cabecalho">
+    <h1>Cronograma</h1>
+    <p>{{ c.nome }}</p>
+  </header>
+
+  @if (semana(); as s) {
+    <section class="navegacao" aria-label="Navegação entre semanas">
+      <button mat-icon-button type="button" (click)="anterior()" [disabled]="indice() === 0" aria-label="Semana anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <div class="navegacao__atual" [style.--cor-bloco]="s.bloco.cor ?? 'var(--app-primaria)'">
+        <span class="navegacao__bloco"><span class="navegacao__ponto" aria-hidden="true"></span>{{ s.bloco.titulo }}</span>
+        <strong>{{ s.label }}</strong>
+        <span class="navegacao__periodo">{{ s.inicio | date: 'dd/MM' }} a {{ s.fim | date: 'dd/MM/yyyy' }}</span>
+      </div>
+
+      <button
+        mat-icon-button
+        type="button"
+        (click)="proxima()"
+        [disabled]="indice() === semanas().length - 1"
+        aria-label="Próxima semana"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+
+      <button mat-stroked-button type="button" (click)="irParaHoje()" [disabled]="indice() === indiceHoje()">
+        <mat-icon>today</mat-icon>
+        Hoje
+      </button>
+    </section>
+
+    @if (totais().total > 0) {
+      <section class="geral" aria-label="Progresso da semana">
+        <div class="geral__topo">
+          <span>{{ totais().concluidos }} de {{ totais().total }} itens concluídos nesta semana</span>
+          <strong>{{ totais().percentual }}%</strong>
+        </div>
+        <app-progress-bar [valor]="totais().percentual" [cor]="s.bloco.cor ?? 'var(--app-primaria)'" rotulo="Progresso da semana" />
+      </section>
+    }
+
+    @if (s.dias.length === 0) {
+      <app-empty-state
+        icone="event_busy"
+        titulo="Esta semana ainda não tem dias"
+        descricao="Adicione dias e itens de estudo no plano do bloco."
+      >
+        <a mat-flat-button [routerLink]="['/concursos', c.id, 'bloco', s.bloco_id]">Ir para o plano</a>
+      </app-empty-state>
+    } @else {
+      <div class="dias">
+        @for (dia of s.dias; track dia.id) {
+          <section class="dia" [class.dia--hoje]="ehHoje(dia.data)">
+            <header class="dia__cabecalho">
+              <h2>
+                {{ dia.dia_semana ? (dia.dia_semana | diaSemana) : dia.label }}
+                @if (ehHoje(dia.data)) {
+                  <span class="etiqueta">Hoje</span>
+                }
+              </h2>
+              @if (dia.data) {
+                <span class="dia__data">{{ dia.data | date: 'dd/MM' }}</span>
+              }
+            </header>
+
+            @if (dia.itens.length === 0) {
+              <p class="vazio">Sem itens neste dia.</p>
+            } @else {
+              <ul class="itens">
+                @for (item of dia.itens; track item.id) {
+                  <li class="item" [class.item--concluido]="item.concluido">
+                    <mat-checkbox
+                      [checked]="!!item.concluido"
+                      (change)="alternarItem(item, $event.checked)"
+                      [aria-label]="'Marcar como concluído: ' + item.descricao"
+                    />
+                    <div class="item__corpo">
+                      <p class="item__descricao">{{ item.descricao }}</p>
+                      <p class="item__meta">
+                        @if (tipo(item.tipo); as t) {
+                          <span>{{ t.rotulo }}</span>
+                        }
+                        @if (item.duracao_min) {
+                          <span>{{ item.duracao_min | minutosParaTempo }}</span>
+                        }
+                        @if (item.fonte) {
+                          <span>{{ item.fonte }}@if (item.paginas) { · p.{{ item.paginas }} }</span>
+                        }
+                      </p>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+      </div>
+    }
+  } @else {
+    <app-empty-state
+      icone="calendar_month"
+      titulo="Nenhuma semana com período definido"
+      descricao="Defina o período de cada semana no calendário (editando a semana no plano do bloco) para vê-las aqui."
+    >
+      <a mat-flat-button [routerLink]="['/concursos', c.id]">Ir para o plano</a>
+    </app-empty-state>
+  }
+
+  @if ((cronograma()?.semPeriodo ?? 0) > 0 && semana()) {
+    <p class="aviso">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      {{ cronograma()?.semPeriodo }}
+      {{ cronograma()?.semPeriodo === 1 ? 'semana sem período definido não aparece' : 'semanas sem período definido não aparecem' }}
+      aqui. Defina o período no plano do bloco.
+    </p>
+  }
+}
