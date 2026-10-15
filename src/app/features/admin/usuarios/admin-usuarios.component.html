@@ -1,6 +1,12 @@
 <header class="pagina__cabecalho">
-  <h1>Usuários</h1>
-  <p>Quem tem acesso à plataforma e o papel de cada um.</p>
+  <div>
+    <h1>Usuários</h1>
+    <p>Quem tem acesso à plataforma e o papel de cada um.</p>
+  </div>
+  <button mat-flat-button type="button" (click)="novoUsuario()">
+    <mat-icon>person_add</mat-icon>
+    Novo usuário
+  </button>
 </header>
 
 @if (carregando()) {
