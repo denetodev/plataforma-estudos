@@ -37,7 +37,7 @@ import { BlocosService } from '../blocos.service';
 import { DiaFormDialogComponent } from '../dia-form/dia-form-dialog.component';
 import { FormDialogData } from '../form-dialog';
 import { ItemFormDialogComponent } from '../item-form/item-form-dialog.component';
-import { PlanoService } from '../plano.service';
+import { Ordenavel, PlanoService } from '../plano.service';
 import { SemanaFormDialogComponent } from '../semana-form/semana-form-dialog.component';
 
 @Component({
@@ -256,6 +256,61 @@ export class PlanoBlocoComponent implements OnInit {
       () => this.planoService.excluirItem(item.id),
       'Item excluído.',
     );
+  }
+
+  // ---- reordenação ----
+
+  protected moverSemana(semana: SemanaCompleta, direcao: -1 | 1): void {
+    const vizinha = this.vizinho(this.semanas(), semana, direcao);
+    if (!vizinha) return;
+    this.semanas.update((lista) => this.trocar(lista, semana, vizinha));
+    void this.persistirTroca('semanas', semana, vizinha);
+  }
+
+  protected moverDia(dia: DiaComItens, direcao: -1 | 1): void {
+    const semana = this.semanas().find((s) => s.id === dia.semana_id);
+    const vizinho = semana && this.vizinho(semana.dias, dia, direcao);
+    if (!vizinho) return;
+    this.semanas.update((lista) =>
+      lista.map((s) => (s.id === dia.semana_id ? { ...s, dias: this.trocar(s.dias, dia, vizinho) } : s)),
+    );
+    void this.persistirTroca('dias', dia, vizinho);
+  }
+
+  protected moverItem(item: Item, direcao: -1 | 1): void {
+    const dia = this.semanas()
+      .flatMap((s) => s.dias)
+      .find((d) => d.id === item.dia_id);
+    const vizinho = dia && this.vizinho(dia.itens, item, direcao);
+    if (!vizinho) return;
+    this.semanas.update((lista) =>
+      lista.map((s) => ({
+        ...s,
+        dias: s.dias.map((d) => (d.id === item.dia_id ? { ...d, itens: this.trocar(d.itens, item, vizinho) } : d)),
+      })),
+    );
+    void this.persistirTroca('itens', item, vizinho);
+  }
+
+  private vizinho<T extends Ordenavel>(lista: T[], atual: T, direcao: -1 | 1): T | undefined {
+    return lista[lista.findIndex((x) => x.id === atual.id) + direcao];
+  }
+
+  /** Troca os valores de `ordem` de dois irmãos e reordena a lista (sem mutar). */
+  private trocar<T extends Ordenavel>(lista: T[], a: T, b: T): T[] {
+    return lista
+      .map((x) => (x.id === a.id ? { ...x, ordem: b.ordem } : x.id === b.id ? { ...x, ordem: a.ordem } : x))
+      .sort((x, y) => x.ordem - y.ordem);
+  }
+
+  /** A tela já mudou (otimista); se a gravação falhar, recarrega o estado real. */
+  private async persistirTroca(tabela: 'semanas' | 'dias' | 'itens', a: Ordenavel, b: Ordenavel): Promise<void> {
+    try {
+      await this.planoService.trocarOrdem(tabela, a, b);
+    } catch (e) {
+      this.snackBar.open(e instanceof Error ? e.message : 'Não foi possível reordenar.', 'Fechar', { duration: 6000 });
+      await this.recarregar();
+    }
   }
 
   // ---- infraestrutura de dialogs ----
