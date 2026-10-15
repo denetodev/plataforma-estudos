@@ -29,6 +29,16 @@
           {{ item.rotulo }}
         </a>
       }
+
+      @if (isAdmin()) {
+        <span class="lateral__secao">Administração</span>
+        @for (item of itensAdmin; track item.rota) {
+          <a class="lateral__item" [routerLink]="item.rota" routerLinkActive="lateral__item--ativo">
+            <mat-icon>{{ item.icone }}</mat-icon>
+            {{ item.rotulo }}
+          </a>
+        }
+      }
     </nav>
 
     <div class="lateral__usuario">

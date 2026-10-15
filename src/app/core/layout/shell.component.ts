@@ -30,6 +30,11 @@ export class ShellComponent {
 
   protected readonly itens: ItemMenu[] = [{ rotulo: 'Concursos', icone: 'workspace_premium', rota: '/concursos' }];
 
+  protected readonly itensAdmin: ItemMenu[] = [
+    { rotulo: 'Usuários', icone: 'group', rota: '/admin/usuarios' },
+    { rotulo: 'Todos os concursos', icone: 'folder_shared', rota: '/admin/concursos' },
+  ];
+
   constructor() {
     // Fecha o menu (mobile) ao navegar.
     this.router.events

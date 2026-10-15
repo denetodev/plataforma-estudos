@@ -1,0 +1,49 @@
+<header class="pagina__cabecalho">
+  <h1>Usuários</h1>
+  <p>Quem tem acesso à plataforma e o papel de cada um.</p>
+</header>
+
+@if (carregando()) {
+  <div class="carregando" role="status" aria-live="polite">
+    <mat-spinner diameter="36" />
+    <span>Carregando usuários…</span>
+  </div>
+} @else if (erro(); as mensagem) {
+  <app-empty-state icone="error_outline" titulo="Algo deu errado" [descricao]="mensagem">
+    <button mat-flat-button type="button" (click)="carregar()">Tentar novamente</button>
+  </app-empty-state>
+} @else if (usuarios().length === 0) {
+  <app-empty-state icone="group" titulo="Nenhum usuário encontrado" />
+} @else {
+  <ul class="lista">
+    @for (usuario of usuarios(); track usuario.id) {
+      <li class="usuario">
+        <span class="usuario__avatar" aria-hidden="true">{{ usuario.nome.charAt(0).toUpperCase() }}</span>
+        <div class="usuario__dados">
+          <strong>
+            {{ usuario.nome }}
+            @if (ehEuMesmo(usuario)) {
+              <span class="etiqueta etiqueta--cinza">você</span>
+            }
+          </strong>
+          <span>
+            Desde {{ usuario.created_at | date: 'dd/MM/yyyy' }} ·
+            {{ usuario.total_concursos }} {{ usuario.total_concursos === 1 ? 'concurso' : 'concursos' }}
+          </span>
+        </div>
+        <span class="etiqueta" [class.etiqueta--admin]="usuario.role === 'admin'">
+          {{ usuario.role === 'admin' ? 'Administrador' : 'Estudante' }}
+        </span>
+        <button
+          mat-stroked-button
+          type="button"
+          [disabled]="ehEuMesmo(usuario)"
+          (click)="alterarRole(usuario)"
+          [attr.title]="ehEuMesmo(usuario) ? 'Você não pode alterar o próprio papel' : null"
+        >
+          {{ usuario.role === 'admin' ? 'Remover admin' : 'Tornar admin' }}
+        </button>
+      </li>
+    }
+  </ul>
+}

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { adminGuard } from './core/auth/admin.guard';
 import { authGuard, visitanteGuard } from './core/auth/auth.guard';
 import { ShellComponent } from './core/layout/shell.component';
 
@@ -78,6 +79,29 @@ export const routes: Routes = [
           import('./features/concursos/form/form-concurso.component').then(
             (m) => m.FormConcursoComponent,
           ),
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'usuarios' },
+          {
+            path: 'usuarios',
+            title: `Usuários · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/admin/usuarios/admin-usuarios.component').then(
+                (m) => m.AdminUsuariosComponent,
+              ),
+          },
+          {
+            path: 'concursos',
+            title: `Todos os concursos · ${TITULO}`,
+            loadComponent: () =>
+              import('./features/admin/concursos-todos/admin-concursos-todos.component').then(
+                (m) => m.AdminConcursosTodosComponent,
+              ),
+          },
+        ],
       },
     ],
   },
