@@ -8,6 +8,11 @@ import { SemanaCompleta, SemanaDados } from '../../shared/models/semana.model';
 
 type Tabela = 'semanas' | 'dias' | 'itens';
 
+export interface Ordenavel {
+  id: string;
+  ordem: number;
+}
+
 /** Formato bruto da consulta: itens trazem a linha de progresso embutida. */
 type SemanaComProgresso = Omit<SemanaCompleta, 'dias'> & {
   dias: (Omit<DiaComItens, 'itens'> & {
@@ -105,6 +110,20 @@ export class PlanoService {
 
   excluirItem(id: string): Promise<void> {
     return this.excluir('itens', id, 'excluir o item');
+  }
+
+  /**
+   * Troca a posição de dois irmãos. São duas gravações; se a segunda falhar, tenta desfazer a
+   * primeira para não deixar duas linhas com a mesma ordem.
+   */
+  async trocarOrdem(tabela: Tabela, a: Ordenavel, b: Ordenavel): Promise<void> {
+    await this.atualizar(tabela, a.id, { ordem: b.ordem }, 'reordenar');
+    try {
+      await this.atualizar(tabela, b.id, { ordem: a.ordem }, 'reordenar');
+    } catch (e) {
+      await this.atualizar(tabela, a.id, { ordem: a.ordem }, 'reordenar').catch(() => undefined);
+      throw e;
+    }
   }
 
   private usuarioId(): string {

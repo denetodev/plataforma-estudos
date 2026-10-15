@@ -55,7 +55,7 @@
     </app-empty-state>
   } @else {
     <mat-accordion multi class="semanas">
-      @for (semana of semanas(); track semana.id; let primeira = $first) {
+      @for (semana of semanas(); track semana.id; let primeira = $first; let ultima = $last) {
         <mat-expansion-panel [expanded]="primeira">
           <mat-expansion-panel-header>
             <mat-panel-title>{{ semana.label }}</mat-panel-title>
@@ -76,6 +76,26 @@
               <mat-icon>edit</mat-icon>
               Editar semana
             </button>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="moverSemana(semana, -1)"
+              [disabled]="primeira"
+              aria-label="Mover semana para cima"
+              title="Mover para cima"
+            >
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="moverSemana(semana, 1)"
+              [disabled]="ultima"
+              aria-label="Mover semana para baixo"
+              title="Mover para baixo"
+            >
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
             <button mat-button type="button" class="perigo" (click)="excluirSemana(semana)">
               <mat-icon>delete_outline</mat-icon>
               Excluir semana
@@ -86,7 +106,7 @@
             <p class="vazio">Nenhum dia nesta semana ainda.</p>
           }
 
-          @for (dia of semana.dias; track dia.id) {
+          @for (dia of semana.dias; track dia.id; let primeiroDia = $first; let ultimoDia = $last) {
             <section class="dia">
               <header class="dia__cabecalho">
                 <h3>
@@ -116,6 +136,14 @@
                       <mat-icon>edit</mat-icon>
                       <span>Editar dia</span>
                     </button>
+                    <button mat-menu-item type="button" (click)="moverDia(dia, -1)" [disabled]="primeiroDia">
+                      <mat-icon>arrow_upward</mat-icon>
+                      <span>Mover para cima</span>
+                    </button>
+                    <button mat-menu-item type="button" (click)="moverDia(dia, 1)" [disabled]="ultimoDia">
+                      <mat-icon>arrow_downward</mat-icon>
+                      <span>Mover para baixo</span>
+                    </button>
                     <button mat-menu-item type="button" (click)="excluirDia(dia)">
                       <mat-icon>delete_outline</mat-icon>
                       <span>Excluir dia</span>
@@ -128,7 +156,7 @@
                 <p class="vazio vazio--dia">Sem itens neste dia.</p>
               } @else {
                 <ul class="itens">
-                  @for (item of dia.itens; track item.id) {
+                  @for (item of dia.itens; track item.id; let primeiroItem = $first; let ultimoItem = $last) {
                     <li class="item" [class.item--concluido]="item.concluido">
                       <mat-checkbox
                         class="item__check"
@@ -174,6 +202,14 @@
                         <button mat-menu-item type="button" (click)="editarItem(item)">
                           <mat-icon>edit</mat-icon>
                           <span>Editar item</span>
+                        </button>
+                        <button mat-menu-item type="button" (click)="moverItem(item, -1)" [disabled]="primeiroItem">
+                          <mat-icon>arrow_upward</mat-icon>
+                          <span>Mover para cima</span>
+                        </button>
+                        <button mat-menu-item type="button" (click)="moverItem(item, 1)" [disabled]="ultimoItem">
+                          <mat-icon>arrow_downward</mat-icon>
+                          <span>Mover para baixo</span>
                         </button>
                         <button mat-menu-item type="button" (click)="excluirItem(item)">
                           <mat-icon>delete_outline</mat-icon>
