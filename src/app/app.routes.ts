@@ -65,6 +65,14 @@ export const routes: Routes = [
           import('./features/plano/bloco-form/form-bloco.component').then((m) => m.FormBlocoComponent),
       },
       {
+        path: 'concursos/:id/cronograma',
+        title: `Cronograma · ${TITULO}`,
+        loadComponent: () =>
+          import('./features/cronograma/semana-view/cronograma-semanal.component').then(
+            (m) => m.CronogramaSemanalComponent,
+          ),
+      },
+      {
         path: 'concursos/:id/progresso',
         title: `Progresso · ${TITULO}`,
         loadComponent: () =>

@@ -32,6 +32,10 @@
       </div>
     </div>
     <div class="cabecalho__acoes">
+      <a mat-stroked-button [routerLink]="['/concursos', c.id, 'cronograma']">
+        <mat-icon>calendar_month</mat-icon>
+        Cronograma
+      </a>
       <a mat-stroked-button [routerLink]="['/concursos', c.id, 'progresso']">
         <mat-icon>insights</mat-icon>
         Ver progresso

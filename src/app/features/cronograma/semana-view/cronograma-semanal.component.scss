@@ -1,0 +1,261 @@
+:host {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: var(--app-texto-suave);
+  text-decoration: none;
+  font-size: 0.9rem;
+
+  &:hover {
+    color: var(--app-primaria-escura);
+  }
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 72px 0;
+  color: var(--app-texto-suave);
+}
+
+.cabecalho {
+  margin-bottom: 20px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--app-texto-suave);
+  }
+}
+
+.navegacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borda);
+
+  &__atual {
+    --cor-bloco: var(--app-primaria);
+
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    line-height: 1.35;
+
+    strong {
+      font-size: 1.1rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__bloco {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--app-texto-suave);
+  }
+
+  &__ponto {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--cor-bloco);
+  }
+
+  &__periodo {
+    font-size: 0.85rem;
+    color: var(--app-texto-suave);
+  }
+}
+
+.geral {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borda);
+
+  &__topo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--app-texto-suave);
+    font-size: 0.9rem;
+
+    strong {
+      font-size: 1.1rem;
+      color: #1f2937;
+    }
+  }
+}
+
+.dias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--app-superficie);
+  border: 1px solid var(--app-borda);
+
+  &--hoje {
+    border-color: var(--app-primaria);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 14%);
+  }
+
+  &__cabecalho {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 1.05rem;
+    }
+  }
+
+  &__data {
+    font-size: 0.85rem;
+    color: var(--app-texto-suave);
+  }
+}
+
+.vazio {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--app-texto-suave);
+}
+
+.itens {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid var(--app-borda);
+
+  &:first-child {
+    border-top: 0;
+  }
+
+  mat-checkbox {
+    flex: none;
+    margin: -6px 0 -6px -10px;
+  }
+
+  &__corpo {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  &__descricao {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    margin: 3px 0 0;
+    font-size: 0.78rem;
+    color: var(--app-texto-suave);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  &--concluido &__descricao {
+    text-decoration: line-through;
+    color: var(--app-texto-suave);
+  }
+}
+
+.etiqueta {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--app-primaria);
+}
+
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 0;
+  font-size: 0.85rem;
+  color: var(--app-texto-suave);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .navegacao {
+    flex-wrap: wrap;
+    justify-content: center;
+
+    &__atual {
+      order: -1;
+      flex-basis: 100%;
+    }
+  }
+}
