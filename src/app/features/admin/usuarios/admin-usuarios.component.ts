@@ -15,6 +15,7 @@ import {
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { PerfilRole } from '../../../shared/models/perfil.model';
 import { AdminService, UsuarioResumo } from '../admin.service';
+import { NovoUsuarioDialogComponent } from './novo-usuario-dialog.component';
 
 @Component({
   selector: 'app-admin-usuarios',
@@ -51,6 +52,23 @@ export class AdminUsuariosComponent {
     } finally {
       this.carregando.set(false);
     }
+  }
+
+  protected async novoUsuario(): Promise<void> {
+    const resultado = await firstValueFrom(
+      this.dialog
+        .open<NovoUsuarioDialogComponent, void, { aviso?: string }>(NovoUsuarioDialogComponent, {
+          maxWidth: '94vw',
+          autoFocus: 'first-tabbable',
+        })
+        .afterClosed(),
+    );
+    if (!resultado) return;
+
+    this.snackBar.open(resultado.aviso ?? 'Usuário criado. Repasse a senha inicial a ele.', 'Fechar', {
+      duration: resultado.aviso ? 8000 : 5000,
+    });
+    await this.carregar();
   }
 
   protected async alterarRole(usuario: UsuarioResumo): Promise<void> {
