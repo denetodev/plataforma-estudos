@@ -5,14 +5,13 @@
 -- INSTRUÇÕES:
 -- 1. Aplique primeiro o schema (001_schema_inicial.sql)
 -- 2. Crie o usuário do Lucas no Supabase Auth (Authentication > Users)
--- 3. Troque o e-mail abaixo pelo e-mail real do Lucas (o ID é buscado sozinho)
+-- 3. O UUID do Lucas já está preenchido abaixo (confira em perfis / Authentication > Users)
 -- 4. Execute este script no SQL Editor do Supabase (uma única vez)
 -- ============================================================
 
 DO $$
 DECLARE
-  lucas_email text := 'COLOQUE_AQUI_O_EMAIL_DO_LUCAS'; -- <<< SUBSTITUIR
-  lucas_id    uuid;
+  lucas_id    uuid := '4a0cdf13-789c-43c9-9fae-6d425dceac0f'; -- Lucas Corsino (perfis.id)
   concurso_id uuid;
 
   -- Blocos
@@ -33,9 +32,8 @@ DECLARE
 
 BEGIN
 
-  SELECT id INTO lucas_id FROM auth.users WHERE lower(email) = lower(lucas_email);
-  IF lucas_id IS NULL THEN
-    RAISE EXCEPTION 'Usuário "%" não encontrado em auth.users. Crie-o em Authentication > Users e ajuste lucas_email.', lucas_email;
+  IF NOT EXISTS (SELECT 1 FROM perfis WHERE id = lucas_id) THEN
+    RAISE EXCEPTION 'Perfil % não encontrado. O usuário precisa se cadastrar antes de rodar o seed.', lucas_id;
   END IF;
 
   -- Evita duplicar o cronograma se o script for executado mais de uma vez
@@ -46,7 +44,7 @@ BEGIN
     RAISE EXCEPTION 'O concurso INSS 2026 já existe para este usuário; seed não executado.';
   END IF;
 
-  UPDATE perfis SET nome = 'Lucas' WHERE id = lucas_id;
+  -- O nome do perfil é o que a própria pessoa informou no cadastro; não é sobrescrito aqui.
 
   -- --------------------------------------------------------
   -- CONCURSO
