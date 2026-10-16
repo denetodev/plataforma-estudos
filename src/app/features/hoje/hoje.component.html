@@ -1,0 +1,87 @@
+<header class="cabecalho">
+  <div>
+    <h1>Hoje</h1>
+    <p class="cabecalho__data">{{ hoje | date: "EEEE, d 'de' MMMM" }}</p>
+  </div>
+</header>
+
+@if (carregando()) {
+  <div class="carregando" role="status" aria-live="polite">
+    <mat-spinner diameter="36" />
+    <span>Carregando seus estudos de hoje…</span>
+  </div>
+} @else if (erro(); as mensagem) {
+  <app-empty-state icone="error_outline" titulo="Algo deu errado" [descricao]="mensagem">
+    <button mat-flat-button type="button" (click)="carregar()">Tentar novamente</button>
+  </app-empty-state>
+} @else if (grupos().length === 0) {
+  <app-empty-state
+    icone="beach_access"
+    titulo="Nada planejado para hoje"
+    descricao="Não há itens de estudo para hoje. Confira o cronograma dos seus concursos ou defina o período das semanas no plano."
+  >
+    <a mat-flat-button routerLink="/concursos">Ver concursos</a>
+  </app-empty-state>
+} @else {
+  <section class="geral" aria-label="Progresso de hoje">
+    <div class="geral__topo">
+      <span>
+        {{ concluidos() }} de {{ total() }} itens concluídos
+        @if (minutosRestantes() > 0) {
+          · faltam {{ minutosRestantes() | minutosParaTempo }}
+        }
+      </span>
+      <strong>{{ percentual() }}%</strong>
+    </div>
+    <app-progress-bar [valor]="percentual()" rotulo="Progresso de hoje" />
+    @if (total() > 0 && concluidos() === total()) {
+      <p class="geral__parabens"><mat-icon aria-hidden="true">celebration</mat-icon>Tudo feito por hoje. Bom trabalho!</p>
+    }
+  </section>
+
+  @for (grupo of grupos(); track grupo.concurso.id) {
+    <section class="grupo">
+      <h2>
+        <a [routerLink]="['/concursos', grupo.concurso.id, 'cronograma']">{{ grupo.concurso.nome }}</a>
+      </h2>
+
+      @for (b of grupo.blocos; track b.diaLabel + b.bloco.id) {
+        <article class="bloco" [style.--cor-bloco]="b.bloco.cor ?? 'var(--app-primaria)'">
+          <header class="bloco__cabecalho">
+            <span class="bloco__ponto" aria-hidden="true"></span>
+            <div>
+              <strong>{{ b.bloco.titulo }}</strong>
+              <span>{{ b.semanaLabel }} · {{ b.diaLabel }}</span>
+            </div>
+          </header>
+
+          <ul class="itens">
+            @for (item of b.itens; track item.id) {
+              <li class="item" [class.item--concluido]="item.concluido">
+                <mat-checkbox
+                  [checked]="!!item.concluido"
+                  (change)="alternarItem(item, $event.checked)"
+                  [aria-label]="'Marcar como concluído: ' + item.descricao"
+                />
+                <div class="item__corpo">
+                  <p class="item__descricao">{{ item.descricao }}</p>
+                  <p class="item__meta">
+                    @if (tipo(item.tipo); as t) {
+                      <span>{{ t.rotulo }}</span>
+                    }
+                    @if (item.duracao_min) {
+                      <span>{{ item.duracao_min | minutosParaTempo }}</span>
+                    }
+                    @if (item.fonte) {
+                      <span>{{ item.fonte }}@if (item.paginas) { · p.{{ item.paginas }} }</span>
+                    }
+                  </p>
+                </div>
+              </li>
+            }
+          </ul>
+        </article>
+      }
+    </section>
+  }
+}

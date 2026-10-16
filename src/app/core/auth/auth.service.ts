@@ -59,6 +59,50 @@ export class AuthService {
     this.perfil.set(null);
   }
 
+  /** Atualiza o nome do usuário logado. Retorna `null` em sucesso ou a mensagem de erro. */
+  async atualizarNome(nome: string): Promise<string | null> {
+    const id = this.user()?.id;
+    if (!id) return 'Sua sessão expirou. Entre novamente.';
+
+    const { error } = await this.supabase.client
+      .from('perfis')
+      .update({ nome, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) {
+      console.error('Erro ao atualizar o nome', error);
+      return 'Não foi possível salvar o nome.';
+    }
+    this.perfil.update((p) => (p ? { ...p, nome } : p));
+    return null;
+  }
+
+  /** Troca a senha do usuário logado (também usada no fluxo de recuperação). */
+  async alterarSenha(novaSenha: string): Promise<string | null> {
+    const { error } = await this.supabase.auth.updateUser({ password: novaSenha });
+    if (!error) return null;
+
+    const m = error.message.toLowerCase();
+    if (m.includes('different') || m.includes('same')) return 'A nova senha deve ser diferente da atual.';
+    if (m.includes('at least') || m.includes('weak') || m.includes('short')) {
+      return 'Senha muito fraca. Use pelo menos 8 caracteres.';
+    }
+    return this.erroGenerico(error.message, 'Não foi possível alterar a senha. Tente novamente.');
+  }
+
+  /** Envia o e-mail de recuperação. O link volta para /redefinir-senha. */
+  async enviarRecuperacaoSenha(email: string): Promise<string | null> {
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    if (!error) return null;
+
+    const m = error.message.toLowerCase();
+    if (m.includes('rate limit') || m.includes('too many') || m.includes('seconds')) {
+      return 'Muitas tentativas. Aguarde alguns instantes e tente novamente.';
+    }
+    return this.erroGenerico(error.message, 'Não foi possível enviar o e-mail. Tente novamente.');
+  }
+
   carregarPerfil(): Promise<void> {
     this.perfilEmCarga ??= this.buscarPerfil().finally(() => (this.perfilEmCarga = null));
     return this.perfilEmCarga;
@@ -81,6 +125,13 @@ export class AuthService {
       console.error('Erro ao carregar perfil', error);
     }
     this.perfil.set(perfil ?? null);
+  }
+
+  private erroGenerico(mensagem: string, padrao: string): string {
+    const m = mensagem.toLowerCase();
+    return m.includes('failed to fetch') || m.includes('network')
+      ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+      : padrao;
   }
 
   private traduzirErro(mensagem: string): string {

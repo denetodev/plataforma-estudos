@@ -1,11 +1,13 @@
 @use '@angular/material' as mat;
 
+// Tema claro/escuro: `color-scheme: light dark` segue o sistema; o ThemeService força um dos
+// dois via data-tema="light|dark" no <html>. Material e os tokens abaixo usam light-dark().
 html {
-  color-scheme: light;
+  color-scheme: light dark;
   @include mat.theme(
     (
       color: (
-        theme-type: light,
+        theme-type: color-scheme,
         primary: mat.$violet-palette,
       ),
       typography: Inter,
@@ -16,20 +18,36 @@ html {
     (
       primary: #6366f1,
       on-primary: #ffffff,
-      primary-container: #e0e7ff,
-      on-primary-container: #312e81,
+      primary-container: light-dark(#e0e7ff, #3730a3),
+      on-primary-container: light-dark(#312e81, #e0e7ff),
       surface-tint: #6366f1,
     )
   );
 }
 
+html[data-tema='light'] {
+  color-scheme: light;
+}
+
+html[data-tema='dark'] {
+  color-scheme: dark;
+}
+
 :root {
   --app-primaria: #6366f1;
-  --app-primaria-escura: #4f46e5;
-  --app-fundo: #f5f6fb;
-  --app-superficie: #ffffff;
-  --app-borda: #e5e7f0;
-  --app-texto-suave: #6b7280;
+  --app-primaria-escura: light-dark(#4f46e5, #a5b4fc);
+  --app-fundo: light-dark(#f5f6fb, #0e0f1a);
+  --app-superficie: light-dark(#ffffff, #171828);
+  --app-superficie-2: light-dark(#f8f9fd, #1d1f33);
+  --app-hover: light-dark(#f3f4fb, #22243c);
+  --app-borda: light-dark(#e5e7f0, #2b2d45);
+  --app-texto: light-dark(#1f2937, #e8e9f5);
+  --app-texto-suave: light-dark(#6b7280, #9a9db8);
+  --app-cinza: light-dark(#eef0f5, #2a2c44);
+  --app-cinza-texto: light-dark(#4b5563, #b4b7d0);
+  --app-erro-texto: light-dark(#b42318, #fda29b);
+  --app-erro-bg: light-dark(#fef3f2, #3a1b1b);
+  --app-erro-borda: light-dark(#fecdca, #6b2b2b);
 }
 
 * {
@@ -45,6 +63,6 @@ body {
   margin: 0;
   font-family: Inter, 'Segoe UI', Roboto, sans-serif;
   background: var(--app-fundo);
-  color: #1f2937;
+  color: var(--app-texto);
   -webkit-font-smoothing: antialiased;
 }

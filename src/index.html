@@ -6,6 +6,14 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#6366f1">
+  <script>
+    // Aplica o tema salvo antes do Angular subir (evita o "flash" de tema errado).
+    try {
+      var tema = localStorage.getItem('tema');
+      if (tema === 'escuro') document.documentElement.setAttribute('data-tema', 'dark');
+      else if (tema === 'claro') document.documentElement.setAttribute('data-tema', 'light');
+    } catch (e) {}
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

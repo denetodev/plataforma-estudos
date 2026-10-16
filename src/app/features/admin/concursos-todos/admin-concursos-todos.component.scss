@@ -49,7 +49,7 @@
     outline: 0;
     background: transparent;
     font: inherit;
-    color: #1f2937;
+    color: var(--app-texto);
   }
 }
 
@@ -130,6 +130,6 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #4b5563;
-  background: #eef0f5;
+  color: var(--app-cinza-texto);
+  background: var(--app-cinza);
 }

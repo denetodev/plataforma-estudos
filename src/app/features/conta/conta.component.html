@@ -1,0 +1,91 @@
+<header class="cabecalho">
+  <h1>Minha conta</h1>
+  <p>Seus dados, senha e aparência.</p>
+</header>
+
+<section class="painel" aria-labelledby="titulo-perfil">
+  <h2 id="titulo-perfil">Perfil</h2>
+  <form [formGroup]="formNome" (ngSubmit)="salvarNome()" novalidate>
+    @if (erroNome(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+    <mat-form-field appearance="outline">
+      <mat-label>E-mail</mat-label>
+      <input matInput [value]="email" disabled />
+      <mat-hint>O e-mail não pode ser alterado por aqui.</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Nome</mat-label>
+      <input matInput formControlName="nome" autocomplete="name" />
+      @if (formNome.controls.nome.hasError('required')) {
+        <mat-error>Informe seu nome.</mat-error>
+      } @else if (formNome.controls.nome.hasError('maxlength')) {
+        <mat-error>Use no máximo 100 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="acoes">
+      <button mat-flat-button type="submit" [disabled]="salvandoNome() || formNome.pristine">
+        @if (salvandoNome()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Salvar nome
+        }
+      </button>
+    </div>
+  </form>
+</section>
+
+<section class="painel" aria-labelledby="titulo-senha">
+  <h2 id="titulo-senha">Alterar senha</h2>
+  <form [formGroup]="formSenha" (ngSubmit)="salvarSenha()" novalidate>
+    @if (erroSenha(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+    <mat-form-field appearance="outline">
+      <mat-label>Nova senha</mat-label>
+      <input matInput type="password" formControlName="novaSenha" autocomplete="new-password" />
+      <mat-hint>Mínimo de {{ minSenha }} caracteres.</mat-hint>
+      @if (formSenha.controls.novaSenha.hasError('required')) {
+        <mat-error>Informe a nova senha.</mat-error>
+      } @else if (formSenha.controls.novaSenha.hasError('minlength')) {
+        <mat-error>Use pelo menos {{ minSenha }} caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Confirmar nova senha</mat-label>
+      <input matInput type="password" formControlName="confirmacao" autocomplete="new-password" />
+      @if (formSenha.controls.confirmacao.hasError('required')) {
+        <mat-error>Repita a nova senha.</mat-error>
+      } @else if (formSenha.hasError('senhasDiferentes')) {
+        <mat-error>As senhas não coincidem.</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="acoes">
+      <button mat-flat-button type="submit" [disabled]="salvandoSenha()">
+        @if (salvandoSenha()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Alterar senha
+        }
+      </button>
+    </div>
+  </form>
+</section>
+
+<section class="painel" aria-labelledby="titulo-tema">
+  <h2 id="titulo-tema">Aparência</h2>
+  <mat-button-toggle-group
+    [value]="preferenciaTema()"
+    (change)="definirTema($event.value)"
+    aria-label="Tema da interface"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="claro"><mat-icon>light_mode</mat-icon> Claro</mat-button-toggle>
+    <mat-button-toggle value="escuro"><mat-icon>dark_mode</mat-icon> Escuro</mat-button-toggle>
+    <mat-button-toggle value="sistema"><mat-icon>contrast</mat-icon> Automático</mat-button-toggle>
+  </mat-button-toggle-group>
+</section>

@@ -11,7 +11,7 @@ O usuário cria concursos, monta planos (blocos → semanas → dias → itens) 
 Inspirado no estudaqui.com. UI 100% em português.
 
 **Criado por:** Neto (deneto.dev)
-**Stack:** Angular 18+ (standalone + signals) · Supabase (Auth + Postgres + RLS) · Vercel
+**Stack:** Angular 20 (standalone + signals) · Supabase (Auth + Postgres + RLS) · Vercel
 **Sem backend próprio.** Toda lógica server-side via Supabase (RLS + functions se necessário).
 
 ---
@@ -147,16 +147,23 @@ Ver `supabase/migrations/001_schema_inicial.sql` e `supabase/seed/001_inss_lucas
 ## Rotas Principais
 
 ```ts
-'/login'                          → LoginComponent
-'/cadastro'                       → CadastroComponent (só admin cria usuários, ou aberto?)
-'/concursos'                      → ListaConcursosComponent (guard: autenticado)
-'/concursos/novo'                 → FormConcursoComponent
-'/concursos/:id'                  → DetalheConcursoComponent (blocos do concurso)
-'/concursos/:id/bloco/novo'       → FormBlocoComponent
-'/concursos/:id/cronograma'       → CronogramaComponent (visualização semanal)
-'/concursos/:id/progresso'        → DashboardProgressoComponent
-'/admin/usuarios'                 → AdminUsuariosComponent (guard: admin)
+'/login'                                  → LoginComponent (público)
+'/esqueci-senha'                          → EsqueciSenhaComponent (público)
+'/redefinir-senha'                        → RedefinirSenhaComponent (sessão de recuperação)
+'/hoje'                                   → HojeComponent (o que estudar hoje, todos os concursos)
+'/concursos'                              → ListaConcursosComponent
+'/concursos/novo' · '/concursos/:id/editar' → FormConcursoComponent
+'/concursos/:id'                          → DetalheConcursoComponent (blocos + progresso geral)
+'/concursos/:id/bloco/novo' · '.../bloco/:blocoId/editar' → FormBlocoComponent
+'/concursos/:id/bloco/:blocoId'           → PlanoBlocoComponent (semanas → dias → itens, CRUD + reordenar)
+'/concursos/:id/cronograma'               → CronogramaSemanalComponent (navega por semanas com período)
+'/concursos/:id/progresso'                → DashboardProgressoComponent
+'/conta'                                  → ContaComponent (nome, senha, tema)
+'/admin/usuarios'                         → AdminUsuariosComponent (guard: admin; cria usuários)
+'/admin/concursos'                        → AdminConcursosTodosComponent (guard: admin)
 ```
+
+Todas as rotas exceto login/esqueci-senha ficam atrás de `authGuard` (dentro do `ShellComponent`, com sidebar).
 
 ---
 
@@ -179,7 +186,7 @@ ng serve
 
 # 5. (Opcional) Aplique migrations e seed no Supabase
 # Cole o conteúdo de supabase/migrations/001_schema_inicial.sql no SQL Editor do Supabase
-# Depois cole supabase/seed/001_inss_lucas.sql
+# Depois as migrations 002 e 003 e, por fim, supabase/seed/001_inss_lucas.sql (veja README)
 ```
 
 ---
@@ -203,26 +210,40 @@ para o **INSS 2026 (Técnico do Seguro Social)**, baseado na apostila APCON.
 
 ## Deploy (Vercel)
 
-1. Conectar repo `denetodev/plataforma-estudos` na Vercel
-2. Framework: Angular
-3. Build command: `ng build --configuration production`
-4. Output dir: `dist/plataforma-estudos/browser`
-5. Adicionar env vars: `SUPABASE_URL` e `SUPABASE_ANON_KEY`
-6. Cada push em `main` faz auto-deploy
+1. Repo `denetodev/plataforma-estudos` conectado na Vercel; `vercel.json` define build (`npm run build`),
+   saída (`dist/plataforma-estudos/browser`) e rewrite de SPA
+2. Env vars: `SUPABASE_URL` e `SUPABASE_ANON_KEY` (`scripts/set-env.mjs` gera o `environment.ts` no build)
+3. Cada push em `main` faz auto-deploy
 
 ---
 
-## Próximos Passos (Ordem de Desenvolvimento)
+## Migrations, seed e Edge Function
 
-1. `ng new plataforma-estudos` com routing + scss
-2. Instalar `@supabase/supabase-js`
-3. Criar `SupabaseService` + `AuthService`
-4. Aplicar migration SQL no Supabase
-5. Tela de login funcional
-6. CRUD de concursos
-7. CRUD de blocos → semanas → dias → itens
-8. Marcar progresso (checkbox por item)
-9. Dashboard de progresso
-10. Aplicar seed do INSS pra Lucas
-11. Área admin
-12. Deploy na Vercel
+Ordem no SQL Editor: `001_schema_inicial` → `002_semanas_periodo` → `003_seguranca_perfis` → seed.
+**A 003 é obrigatória:** sem ela, qualquer usuário logado consegue se promover a admin via API.
+
+`supabase/functions/criar-usuario` (Edge Function, Deno): só admin chama; cria usuários com a chave de serviço.
+Deploy: `supabase functions deploy criar-usuario --project-ref <ref>`. Desativar o sign-up público no painel do Supabase.
+
+---
+
+## Decisões de arquitetura
+
+- **Progresso é por usuário × item** (`progresso`). Um admin que marca itens no plano de outra pessoa grava o
+  progresso na própria conta.
+- **Árvore do plano em uma consulta** (`semanas(*, dias(*, itens(*, progresso)))`) com filtro de progresso por
+  `user_id` nas linhas embutidas (sem `!inner`, para não remover itens).
+- **Datas** são `YYYY-MM-DD`; use `isoParaData`/`dataParaIso` (`shared/utils/data.ts`) — `new Date(iso)` interpreta em UTC.
+- **Reordenação** troca o valor de `ordem` entre dois irmãos (duas gravações, com rollback da primeira se a segunda falhar).
+- **Tema**: tokens CSS `--app-*` com `light-dark()` em `styles.scss`; nunca use hex fixo de cor neutra nos componentes.
+- **Chamadas ao Supabase dentro de `onAuthStateChange`** vão em `setTimeout` (evita deadlock do lock do auth-js).
+
+---
+
+## Estado atual e ideias futuras
+
+Implementado: autenticação completa, concursos, blocos, plano (CRUD + reordenar), progresso, cronograma,
+dashboard, Hoje, conta, área admin, tema claro/escuro, deploy na Vercel, testes unitários de utilitários.
+
+Ideias futuras: ver o progresso de outro usuário na área admin; excluir/desativar usuários (Edge Function);
+mover itens entre dias; duplicar um bloco/semana; testes de componentes e e2e; PWA/offline.

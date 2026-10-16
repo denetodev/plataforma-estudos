@@ -1,0 +1,48 @@
+<main class="login">
+  <section class="login__card" aria-labelledby="titulo">
+    <div class="login__marca">
+      <span class="login__logo" aria-hidden="true"><mat-icon>password</mat-icon></span>
+      <h1 id="titulo">Criar nova senha</h1>
+      <p>Escolha uma senha nova para a sua conta.</p>
+    </div>
+
+    <form class="login__form" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      @if (erro(); as mensagem) {
+        <div class="login__erro" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ mensagem }}</span>
+        </div>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nova senha</mat-label>
+        <input matInput type="password" formControlName="novaSenha" autocomplete="new-password" />
+        <mat-hint>Mínimo de {{ minSenha }} caracteres.</mat-hint>
+        @if (form.controls.novaSenha.hasError('required')) {
+          <mat-error>Informe a nova senha.</mat-error>
+        } @else if (form.controls.novaSenha.hasError('minlength')) {
+          <mat-error>Use pelo menos {{ minSenha }} caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Confirmar nova senha</mat-label>
+        <input matInput type="password" formControlName="confirmacao" autocomplete="new-password" />
+        @if (form.controls.confirmacao.hasError('required')) {
+          <mat-error>Repita a nova senha.</mat-error>
+        } @else if (form.hasError('senhasDiferentes')) {
+          <mat-error>As senhas não coincidem.</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-flat-button class="login__enviar" type="submit" [disabled]="enviando()">
+        @if (enviando()) {
+          <mat-spinner diameter="20" />
+          Salvando…
+        } @else {
+          Salvar nova senha
+        }
+      </button>
+    </form>
+  </section>
+</main>
