@@ -56,12 +56,18 @@ UPDATE perfis SET role = 'admin' WHERE id = '<uuid-do-usuario>';
 
 Os demais usuários são criados pelo próprio app (menu **Administração → Usuários → Novo usuário**).
 
-### Edge Function `criar-usuario`
+### Edge Functions
 
-Usada pelo botão "Novo usuário". Guarda a chave de serviço no servidor, nunca no Angular.
+Guardam a chave de serviço no servidor, nunca no Angular. Só administradores conseguem chamá-las.
+
+| Função | Usada por |
+|---|---|
+| `criar-usuario` | Botão "Novo usuário" |
+| `redefinir-senha-usuario` | Botão "Redefinir senha" (substitui a recuperação por e-mail, sem SMTP) |
 
 ```bash
 supabase functions deploy criar-usuario --project-ref <project-ref>
+supabase functions deploy redefinir-senha-usuario --project-ref <project-ref>
 ```
 
 ### Configurações no painel do Supabase
@@ -69,8 +75,10 @@ supabase functions deploy criar-usuario --project-ref <project-ref>
 - **Authentication → Providers → Email:** o cadastro público está **ligado** (tela `/cadastro`). Se *Confirm email* estiver
   ligado, os e-mails de confirmação e de recuperação precisam de um **SMTP próprio** (o SMTP padrão do Supabase só entrega
   para membros da organização). Alternativa: desligar *Confirm email*.
-- **Authentication → URL Configuration:** *Site URL* = URL da Vercel; adicione `<url>/redefinir-senha` em *Redirect URLs*
-  (necessário para o e-mail de recuperação de senha).
+- **Sem SMTP próprio:** desligue *Confirm email* para o cadastro público funcionar sem e-mail. A recuperação de senha
+  por e-mail fica desativada (`RECUPERACAO_POR_EMAIL = false` em `src/app/shared/config/recursos.ts`); quem esquecer a senha
+  pede ao admin (Administração → Usuários → Redefinir senha). Ao configurar SMTP, ligue a flag e adicione
+  `<url>/redefinir-senha` em *Authentication → URL Configuration → Redirect URLs*.
 
 ---
 

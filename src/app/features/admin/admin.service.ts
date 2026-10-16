@@ -54,24 +54,38 @@ export class AdminService {
       'criar-usuario',
       { body: dados },
     );
-    if (error) throw new Error(await this.mensagemDaFuncao(error));
+    if (error) throw new Error(await this.mensagemDaFuncao(error, 'criar-usuario'));
     return { aviso: data?.aviso };
   }
 
-  private async mensagemDaFuncao(erro: unknown): Promise<string> {
+  /** Define uma nova senha para o usuário pela Edge Function `redefinir-senha-usuario` (sem e-mail/SMTP). */
+  async redefinirSenha(usuarioId: string, novaSenha: string): Promise<void> {
+    const { error } = await this.supabase.client.functions.invoke('redefinir-senha-usuario', {
+      body: { usuarioId, novaSenha },
+    });
+    if (error) throw new Error(await this.mensagemDaFuncao(error, 'redefinir-senha-usuario'));
+  }
+
+  private async mensagemDaFuncao(erro: unknown, funcao: string): Promise<string> {
     if (erro instanceof FunctionsHttpError) {
-      if (erro.context.status === 404) {
-        return 'A função "criar-usuario" ainda não foi publicada no Supabase.';
+      if (erro.context.status === 404 && !(await this.corpoComErro(erro))) {
+        return `A função "${funcao}" ainda não foi publicada no Supabase.`;
       }
-      try {
-        const corpo = (await erro.context.json()) as { erro?: string };
-        if (corpo.erro) return corpo.erro;
-      } catch {
-        // resposta sem JSON: cai na mensagem genérica abaixo
-      }
+      const mensagem = await this.corpoComErro(erro);
+      if (mensagem) return mensagem;
     }
-    console.error('Erro ao chamar criar-usuario', erro);
-    return 'Não foi possível criar o usuário. Tente novamente.';
+    console.error(`Erro ao chamar ${funcao}`, erro);
+    return 'Não foi possível concluir a operação. Tente novamente.';
+  }
+
+  /** Mensagem `{ erro }` devolvida pela função, se houver (o gateway 404 não traz esse corpo). */
+  private async corpoComErro(erro: FunctionsHttpError): Promise<string | null> {
+    try {
+      const corpo = (await erro.context.clone().json()) as { erro?: string };
+      return corpo.erro ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async listarConcursos(): Promise<ConcursoComDono[]> {

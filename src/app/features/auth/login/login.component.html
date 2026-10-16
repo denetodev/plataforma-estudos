@@ -53,7 +53,11 @@
         }
       </mat-form-field>
 
-      <a class="login__link login__link--direita" routerLink="/esqueci-senha">Esqueci minha senha</a>
+      @if (recuperacaoPorEmail) {
+        <a class="login__link login__link--direita" routerLink="/esqueci-senha">Esqueci minha senha</a>
+      } @else {
+        <p class="login__dica">Esqueceu a senha? Peça ao administrador para redefini-la.</p>
+      }
 
       <button mat-flat-button class="login__enviar" type="submit" [disabled]="enviando()">
         @if (enviando()) {
