@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { RECUPERACAO_POR_EMAIL } from '../../../shared/config/recursos';
 
 @Component({
   selector: 'app-login',
@@ -30,6 +31,7 @@ export class LoginComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
+  protected readonly recuperacaoPorEmail = RECUPERACAO_POR_EMAIL;
   protected readonly enviando = signal(false);
   protected readonly erro = signal<string | null>(null);
   protected readonly mostrarSenha = signal(false);

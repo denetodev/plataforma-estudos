@@ -16,6 +16,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { PerfilRole } from '../../../shared/models/perfil.model';
 import { AdminService, UsuarioResumo } from '../admin.service';
 import { NovoUsuarioDialogComponent } from './novo-usuario-dialog.component';
+import { RedefinirSenhaUsuarioDialogComponent } from './redefinir-senha-usuario-dialog.component';
 
 @Component({
   selector: 'app-admin-usuarios',
@@ -69,6 +70,23 @@ export class AdminUsuariosComponent {
       duration: resultado.aviso ? 8000 : 5000,
     });
     await this.carregar();
+  }
+
+  protected async redefinirSenha(usuario: UsuarioResumo): Promise<void> {
+    const redefinida = await firstValueFrom(
+      this.dialog
+        .open<RedefinirSenhaUsuarioDialogComponent, UsuarioResumo, boolean>(RedefinirSenhaUsuarioDialogComponent, {
+          data: usuario,
+          maxWidth: '94vw',
+          autoFocus: 'first-tabbable',
+        })
+        .afterClosed(),
+    );
+    if (redefinida) {
+      this.snackBar.open(`Senha de ${usuario.nome} redefinida. Repasse a nova senha a ele.`, 'Fechar', {
+        duration: 6000,
+      });
+    }
   }
 
   protected async alterarRole(usuario: UsuarioResumo): Promise<void> {

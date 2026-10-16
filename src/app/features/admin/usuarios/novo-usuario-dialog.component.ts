@@ -9,10 +9,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 
 import { PerfilRole } from '../../../shared/models/perfil.model';
+import { gerarSenha } from '../../../shared/utils/senha';
 import { AdminService } from '../admin.service';
-
-/** Sem caracteres ambíguos (0/O, 1/l/I) para a senha ser fácil de repassar. */
-const ALFABETO_SENHA = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
 
 @Component({
   selector: 'app-novo-usuario-dialog',
@@ -122,12 +120,12 @@ export class NovoUsuarioDialogComponent {
   protected readonly form = inject(FormBuilder).nonNullable.group({
     nome: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
-    senha: [this.senhaAleatoria(), [Validators.required, Validators.minLength(8)]],
+    senha: [gerarSenha(), [Validators.required, Validators.minLength(8)]],
     role: ['user' as PerfilRole],
   });
 
   protected gerarSenha(): void {
-    this.form.controls.senha.setValue(this.senhaAleatoria());
+    this.form.controls.senha.setValue(gerarSenha());
     this.copiada.set(false);
   }
 
@@ -161,10 +159,5 @@ export class NovoUsuarioDialogComponent {
       this.erro.set(e instanceof Error ? e.message : 'Não foi possível criar o usuário.');
       this.salvando.set(false);
     }
-  }
-
-  private senhaAleatoria(tamanho = 12): string {
-    const sorteio = crypto.getRandomValues(new Uint32Array(tamanho));
-    return Array.from(sorteio, (n) => ALFABETO_SENHA[n % ALFABETO_SENHA.length]).join('');
   }
 }

@@ -85,6 +85,13 @@
     background: rgb(99 102 241 / 12%);
   }
 
+  &__dica {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    text-align: right;
+    color: var(--app-texto-suave);
+  }
+
   &__link {
     margin-top: 12px;
     text-align: center;

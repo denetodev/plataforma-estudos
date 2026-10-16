@@ -40,6 +40,10 @@
         <span class="etiqueta" [class.etiqueta--admin]="usuario.role === 'admin'">
           {{ usuario.role === 'admin' ? 'Administrador' : 'Estudante' }}
         </span>
+        <button mat-button type="button" (click)="redefinirSenha(usuario)" [disabled]="ehEuMesmo(usuario)"
+          [attr.title]="ehEuMesmo(usuario) ? 'Use \'Minha conta\' para trocar a sua senha' : null">
+          Redefinir senha
+        </button>
         <button
           mat-stroked-button
           type="button"
