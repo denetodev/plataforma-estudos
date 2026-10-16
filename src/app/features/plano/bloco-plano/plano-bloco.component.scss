@@ -94,7 +94,7 @@
 
     strong {
       font-size: 1.15rem;
-      color: #1f2937;
+      color: var(--app-texto);
     }
   }
 }
@@ -118,7 +118,7 @@
   margin-bottom: 16px;
 
   .perigo {
-    color: #b42318;
+    color: var(--app-erro-texto);
   }
 }
 
@@ -136,7 +136,7 @@
   margin-top: 14px;
   padding: 12px 14px 8px;
   border-radius: 14px;
-  background: #f8f9fd;
+  background: var(--app-superficie-2);
   border: 1px solid var(--app-borda);
 
   &__cabecalho {
@@ -248,8 +248,8 @@
   background: rgb(99 102 241 / 12%);
 
   &--cinza {
-    color: #4b5563;
-    background: #eef0f5;
+    color: var(--app-cinza-texto);
+    background: var(--app-cinza);
     font-weight: 500;
   }
 }

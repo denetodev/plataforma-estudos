@@ -111,9 +111,9 @@ import { FormDialogData } from '../form-dialog';
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 0.9rem;
-      color: #b42318;
-      background: #fef3f2;
-      border: 1px solid #fecdca;
+      color: var(--app-erro-texto);
+      background: var(--app-erro-bg);
+      border: 1px solid var(--app-erro-borda);
     }
     @media (max-width: 560px) {
       .linha {

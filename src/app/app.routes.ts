@@ -15,11 +15,37 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'esqueci-senha',
+    title: `Recuperar senha · ${TITULO}`,
+    canActivate: [visitanteGuard],
+    loadComponent: () =>
+      import('./features/auth/esqueci-senha/esqueci-senha.component').then((m) => m.EsqueciSenhaComponent),
+  },
+  {
+    path: 'redefinir-senha',
+    title: `Nova senha · ${TITULO}`,
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/redefinir-senha/redefinir-senha.component').then(
+        (m) => m.RedefinirSenhaComponent,
+      ),
+  },
+  {
     path: '',
     component: ShellComponent,
     canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'concursos' },
+      {
+        path: 'hoje',
+        title: `Hoje · ${TITULO}`,
+        loadComponent: () => import('./features/hoje/hoje.component').then((m) => m.HojeComponent),
+      },
+      {
+        path: 'conta',
+        title: `Minha conta · ${TITULO}`,
+        loadComponent: () => import('./features/conta/conta.component').then((m) => m.ContaComponent),
+      },
       {
         path: 'concursos',
         title: `Concursos · ${TITULO}`,

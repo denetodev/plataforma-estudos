@@ -1,0 +1,46 @@
+<main class="login">
+  <section class="login__card" aria-labelledby="titulo">
+    <div class="login__marca">
+      <span class="login__logo" aria-hidden="true"><mat-icon>lock_reset</mat-icon></span>
+      <h1 id="titulo">Recuperar senha</h1>
+      <p>Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha.</p>
+    </div>
+
+    @if (enviado()) {
+      <div class="login__sucesso" role="status">
+        <mat-icon>mark_email_read</mat-icon>
+        <span>Se esse e-mail estiver cadastrado, você receberá o link em instantes. Confira também a caixa de spam.</span>
+      </div>
+      <a mat-stroked-button class="login__enviar" routerLink="/login">Voltar para o login</a>
+    } @else {
+      <form class="login__form" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+        @if (erro(); as mensagem) {
+          <div class="login__erro" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ mensagem }}</span>
+          </div>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="username" placeholder="voce@exemplo.com" />
+          @if (form.controls.email.hasError('required')) {
+            <mat-error>Informe seu e-mail.</mat-error>
+          } @else if (form.controls.email.hasError('email')) {
+            <mat-error>Informe um e-mail válido.</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button class="login__enviar" type="submit" [disabled]="enviando()">
+          @if (enviando()) {
+            <mat-spinner diameter="20" />
+            Enviando…
+          } @else {
+            Enviar link
+          }
+        </button>
+        <a class="login__link" routerLink="/login">Voltar para o login</a>
+      </form>
+    }
+  </section>
+</main>

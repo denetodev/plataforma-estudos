@@ -91,8 +91,8 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #4b5563;
-  background: #eef0f5;
+  color: var(--app-cinza-texto);
+  background: var(--app-cinza);
 
   &--admin {
     color: var(--app-primaria-escura);

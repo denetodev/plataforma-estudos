@@ -53,6 +53,8 @@
         }
       </mat-form-field>
 
+      <a class="login__link login__link--direita" routerLink="/esqueci-senha">Esqueci minha senha</a>
+
       <button mat-flat-button class="login__enviar" type="submit" [disabled]="enviando()">
         @if (enviando()) {
           <mat-spinner diameter="20" />

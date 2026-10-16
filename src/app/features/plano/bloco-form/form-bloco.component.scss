@@ -70,15 +70,15 @@
     padding: 10px 12px;
     border-radius: 10px;
     font-size: 0.9rem;
-    color: #b42318;
-    background: #fef3f2;
-    border: 1px solid #fecdca;
+    color: var(--app-erro-texto);
+    background: var(--app-erro-bg);
+    border: 1px solid var(--app-erro-borda);
   }
 
   &__aviso {
     margin: -8px 0 8px;
     font-size: 0.8rem;
-    color: #b42318;
+    color: var(--app-erro-texto);
   }
 
   &__acoes {
@@ -125,7 +125,7 @@
     outline-offset: 2px;
 
     &--ativo {
-      box-shadow: 0 0 0 2px var(--app-superficie), 0 0 0 4px #1f2937;
+      box-shadow: 0 0 0 2px var(--app-superficie), 0 0 0 4px var(--app-texto);
     }
 
     mat-icon {
