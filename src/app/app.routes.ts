@@ -15,6 +15,13 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'cadastro',
+    title: `Criar conta · ${TITULO}`,
+    canActivate: [visitanteGuard],
+    loadComponent: () =>
+      import('./features/auth/cadastro/cadastro.component').then((m) => m.CadastroComponent),
+  },
+  {
     path: 'esqueci-senha',
     title: `Recuperar senha · ${TITULO}`,
     canActivate: [visitanteGuard],

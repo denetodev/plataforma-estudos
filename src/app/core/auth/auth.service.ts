@@ -59,6 +59,43 @@ export class AuthService {
     this.perfil.set(null);
   }
 
+  /**
+   * Cria a conta (cadastro público). `precisaConfirmar` indica que o Supabase enviou um e-mail de
+   * confirmação e o usuário só entra depois de clicar no link; senão a sessão já foi aberta.
+   */
+  async cadastrar(
+    nome: string,
+    email: string,
+    senha: string,
+  ): Promise<{ erro: string | null; precisaConfirmar: boolean }> {
+    const { data, error } = await this.supabase.auth.signUp({
+      email,
+      password: senha,
+      options: { data: { nome }, emailRedirectTo: `${window.location.origin}/login` },
+    });
+
+    if (error) {
+      const m = error.message.toLowerCase();
+      let erro: string;
+      if (m.includes('already') || m.includes('registered')) erro = 'Já existe uma conta com esse e-mail.';
+      else if (m.includes('signups not allowed') || m.includes('disabled')) erro = 'O cadastro está desativado no momento.';
+      else if (m.includes('rate limit') || m.includes('too many') || m.includes('seconds')) {
+        erro = 'Muitas tentativas. Aguarde alguns instantes e tente novamente.';
+      } else if (m.includes('at least') || m.includes('weak') || m.includes('short')) {
+        erro = 'Senha muito fraca. Use pelo menos 8 caracteres.';
+      } else {
+        erro = this.erroGenerico(error.message, 'Não foi possível criar a conta. Tente novamente.');
+      }
+      return { erro, precisaConfirmar: false };
+    }
+
+    // Com confirmação de e-mail ligada, um e-mail já cadastrado não gera erro: volta um usuário sem identidades.
+    if (data.user && data.user.identities?.length === 0) {
+      return { erro: 'Já existe uma conta com esse e-mail.', precisaConfirmar: false };
+    }
+    return { erro: null, precisaConfirmar: !data.session };
+  }
+
   /** Atualiza o nome do usuário logado. Retorna `null` em sucesso ou a mensagem de erro. */
   async atualizarNome(nome: string): Promise<string | null> {
     const id = this.user()?.id;

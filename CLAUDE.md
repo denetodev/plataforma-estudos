@@ -148,6 +148,7 @@ Ver `supabase/migrations/001_schema_inicial.sql` e `supabase/seed/001_inss_lucas
 
 ```ts
 '/login'                                  → LoginComponent (público)
+'/cadastro'                               → CadastroComponent (cadastro público, papel 'user')
 '/esqueci-senha'                          → EsqueciSenhaComponent (público)
 '/redefinir-senha'                        → RedefinirSenhaComponent (sessão de recuperação)
 '/hoje'                                   → HojeComponent (o que estudar hoje, todos os concursos)
@@ -223,7 +224,8 @@ Ordem no SQL Editor: `001_schema_inicial` → `002_semanas_periodo` → `003_seg
 **A 003 é obrigatória:** sem ela, qualquer usuário logado consegue se promover a admin via API.
 
 `supabase/functions/criar-usuario` (Edge Function, Deno): só admin chama; cria usuários com a chave de serviço.
-Deploy: `supabase functions deploy criar-usuario --project-ref <ref>`. Desativar o sign-up público no painel do Supabase.
+Deploy: `supabase functions deploy criar-usuario --project-ref <ref>`. O cadastro público (`/cadastro`) está ligado; novos
+cadastros entram sempre como `user` (a migration 003 impede a auto-promoção).
 
 ---
 

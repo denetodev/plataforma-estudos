@@ -8,7 +8,7 @@ SPA de gestão de cronogramas de estudos para concursos públicas: o usuário cr
 
 ## Funcionalidades
 
-- Login, recuperação e troca de senha; usuários criados apenas por administradores
+- Cadastro público (`/cadastro`), login, recuperação e troca de senha; admins também criam usuários
 - **Hoje**: o que estudar hoje somando todos os concursos ativos
 - Concursos em cards (progresso, contagem para a prova), criar/editar/excluir
 - Blocos coloridos, semanas com período no calendário, dias e itens (reordenáveis)
@@ -66,7 +66,9 @@ supabase functions deploy criar-usuario --project-ref <project-ref>
 
 ### Configurações no painel do Supabase
 
-- **Authentication → Providers → Email:** desative *Allow new users to sign up* (só admins criam usuários).
+- **Authentication → Providers → Email:** o cadastro público está **ligado** (tela `/cadastro`). Se *Confirm email* estiver
+  ligado, os e-mails de confirmação e de recuperação precisam de um **SMTP próprio** (o SMTP padrão do Supabase só entrega
+  para membros da organização). Alternativa: desligar *Confirm email*.
 - **Authentication → URL Configuration:** *Site URL* = URL da Vercel; adicione `<url>/redefinir-senha` em *Redirect URLs*
   (necessário para o e-mail de recuperação de senha).
 
