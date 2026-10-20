@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase/supabase.service';
 import { DiaSemana } from '../../../shared/models/dia.model';
 import { TipoItem } from '../../../shared/models/item.model';
+import { FUNCAO_GERAR_PLANO } from '../../../shared/config/recursos';
 import { mensagemDaFuncao } from '../../../shared/utils/funcoes';
 
 export interface PedidoPlano {
@@ -50,10 +51,10 @@ export class IaService {
   private readonly supabase = inject(SupabaseService);
 
   async gerarPlano(pedido: PedidoPlano): Promise<ResultadoIa> {
-    const { data, error } = await this.supabase.client.functions.invoke<ResultadoIa>('gerar-plano', {
+    const { data, error } = await this.supabase.client.functions.invoke<ResultadoIa>(FUNCAO_GERAR_PLANO, {
       body: pedido,
     });
-    if (error) throw new Error(await mensagemDaFuncao(error, 'gerar-plano'));
+    if (error) throw new Error(await mensagemDaFuncao(error, FUNCAO_GERAR_PLANO));
     if (!data?.plano?.semanas?.length) throw new Error('A IA não retornou um plano. Tente novamente.');
     return data;
   }
