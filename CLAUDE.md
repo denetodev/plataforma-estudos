@@ -220,7 +220,7 @@ para o **INSS 2026 (Técnico do Seguro Social)**, baseado na apostila APCON.
 
 ## Migrations, seed e Edge Function
 
-Ordem no SQL Editor: `001_schema_inicial` → `002_semanas_periodo` → `003_seguranca_perfis` → seed.
+Ordem no SQL Editor: `001_schema_inicial` → `002_semanas_periodo` → `003_seguranca_perfis` → `004_materia_e_uso_ia` → seed.
 **A 003 é obrigatória:** sem ela, qualquer usuário logado consegue se promover a admin via API.
 
 `supabase/functions/criar-usuario` (Edge Function, Deno): só admin chama; cria usuários com a chave de serviço.
@@ -238,6 +238,11 @@ cadastros entram sempre como `user` (a migration 003 impede a auto-promoção).
 - **Datas** são `YYYY-MM-DD`; use `isoParaData`/`dataParaIso` (`shared/utils/data.ts`) — `new Date(iso)` interpreta em UTC.
 - **Reordenação** troca o valor de `ordem` entre dois irmãos (duas gravações, com rollback da primeira se a segunda falhar).
 - **Tema**: tokens CSS `--app-*` com `light-dark()` em `styles.scss`; nunca use hex fixo de cor neutra nos componentes.
+- **IA** (`supabase/functions/gerar-plano`): provedor por secret (`IA_PROVEDOR` = gemini | anthropic), chave só no
+  servidor, limite diário por usuário em `uso_ia`, resposta validada no servidor e **sem gravar nada** — o app mostra
+  uma prévia e `PlanoService.criarPlanoGerado` grava (com rollback das semanas criadas se algo falhar).
+  O texto do usuário/material vai para o modelo como DADO; o prompt manda ignorar instruções contidas nele.
+- **Matéria** é um texto livre em `itens.materia`; a cor vem de um hash do nome (`shared/utils/materia.ts`).
 - **Chamadas ao Supabase dentro de `onAuthStateChange`** vão em `setTimeout` (evita deadlock do lock do auth-js).
 
 ---
@@ -246,6 +251,9 @@ cadastros entram sempre como `user` (a migration 003 impede a auto-promoção).
 
 Implementado: autenticação completa, concursos, blocos, plano (CRUD + reordenar), progresso, cronograma,
 dashboard, Hoje, conta, área admin, tema claro/escuro, deploy na Vercel, testes unitários de utilitários.
+
+IA já implementada: criar plano com IA (prévia + gravação). Próximos passos da IA: ajustar um plano existente
+("passa matemática para terça"), sugerir revisões a partir do progresso.
 
 Ideias futuras: ver o progresso de outro usuário na área admin; excluir/desativar usuários (Edge Function);
 mover itens entre dias; duplicar um bloco/semana; testes de componentes e e2e; PWA/offline.

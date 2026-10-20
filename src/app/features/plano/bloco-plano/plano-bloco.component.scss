@@ -99,6 +99,31 @@
   }
 }
 
+.filtro-materia {
+  margin-bottom: 14px;
+}
+
+.materia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--app-texto);
+}
+
+.materia-ponto {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 50%;
+
+  .materia > & {
+    margin-right: 0;
+  }
+}
+
 .semanas {
   display: flex;
   flex-direction: column;

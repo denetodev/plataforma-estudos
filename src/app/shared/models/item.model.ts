@@ -15,6 +15,8 @@ export interface Item {
   dia_id: string;
   ordem: number;
   descricao: string;
+  /** Disciplina do item (ex.: "Língua Portuguesa"); permite blocos com várias matérias. */
+  materia: string | null;
   tipo: TipoItem | null;
   duracao_min: number | null;
   fonte: string | null;
@@ -25,4 +27,7 @@ export interface Item {
   concluido?: boolean;
 }
 
-export type ItemDados = Pick<Item, 'descricao' | 'tipo' | 'duracao_min' | 'fonte' | 'paginas' | 'tags'>;
+export type ItemDados = Pick<
+  Item,
+  'descricao' | 'materia' | 'tipo' | 'duracao_min' | 'fonte' | 'paginas' | 'tags'
+>;

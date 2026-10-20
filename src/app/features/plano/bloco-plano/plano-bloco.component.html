@@ -25,6 +25,10 @@
         <mat-icon>edit</mat-icon>
         Editar bloco
       </a>
+      <button mat-stroked-button type="button" (click)="criarComIa()">
+        <mat-icon>auto_awesome</mat-icon>
+        Criar com IA
+      </button>
       <button mat-flat-button type="button" (click)="novaSemana()">
         <mat-icon>add</mat-icon>
         Nova semana
@@ -52,8 +56,27 @@
         <mat-icon>add</mat-icon>
         Criar semana
       </button>
+      <button mat-stroked-button type="button" (click)="criarComIa()">
+        <mat-icon>auto_awesome</mat-icon>
+        Criar com IA
+      </button>
     </app-empty-state>
   } @else {
+    @if (materias().length > 0) {
+      <mat-chip-listbox
+        class="filtro-materia"
+        aria-label="Filtrar por matéria"
+        [value]="filtroMateria()"
+        (change)="filtroMateria.set($event.value ?? null)"
+      >
+        @for (m of materias(); track m) {
+          <mat-chip-option [value]="m">
+            <span class="materia-ponto" [style.background]="corMateria(m)"></span>{{ m }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+    }
+
     <mat-accordion multi class="semanas">
       @for (semana of semanas(); track semana.id; let primeira = $first; let ultima = $last) {
         <mat-expansion-panel [expanded]="primeira">
@@ -107,6 +130,8 @@
           }
 
           @for (dia of semana.dias; track dia.id; let primeiroDia = $first; let ultimoDia = $last) {
+            @let visiveis = itensVisiveis(dia);
+            @if (!filtroMateria() || visiveis.length > 0) {
             <section class="dia">
               <header class="dia__cabecalho">
                 <h3>
@@ -156,7 +181,7 @@
                 <p class="vazio vazio--dia">Sem itens neste dia.</p>
               } @else {
                 <ul class="itens">
-                  @for (item of dia.itens; track item.id; let primeiroItem = $first; let ultimoItem = $last) {
+                  @for (item of visiveis; track item.id; let primeiroItem = $first; let ultimoItem = $last) {
                     <li class="item" [class.item--concluido]="item.concluido">
                       <mat-checkbox
                         class="item__check"
@@ -170,6 +195,11 @@
                       <div class="item__corpo">
                         <p class="item__descricao">{{ item.descricao }}</p>
                         <p class="item__meta">
+                          @if (item.materia) {
+                            <span class="materia">
+                              <span class="materia-ponto" [style.background]="corMateria(item.materia)"></span>{{ item.materia }}
+                            </span>
+                          }
                           @if (tipo(item.tipo); as t) {
                             <span>{{ t.rotulo }}</span>
                           }
@@ -221,6 +251,7 @@
                 </ul>
               }
             </section>
+            }
           }
         </mat-expansion-panel>
       }

@@ -14,6 +14,8 @@ SPA de gestão de cronogramas de estudos para concursos públicas: o usuário cr
 - Blocos coloridos, semanas com período no calendário, dias e itens (reordenáveis)
 - Marcar progresso por item, cronograma semanal e dashboard (donut, horas, últimos 14 dias, por bloco)
 - Área admin: usuários (criar, trocar papel) e todos os concursos
+- **Criar com IA**: descreva o que quer estudar e a IA monta semanas, dias e itens (com prévia antes de salvar)
+- Matéria em cada item (um bloco pode ter várias), com cor e filtro
 - Tema claro/escuro/automático
 
 ---
@@ -44,6 +46,7 @@ Execute no **SQL Editor**, nesta ordem:
 | `supabase/migrations/001_schema_inicial.sql` | Tabelas, RLS, `is_admin()`, view de progresso |
 | `supabase/migrations/002_semanas_periodo.sql` | `data_inicio`/`data_fim` nas semanas |
 | `supabase/migrations/003_seguranca_perfis.sql` | **Segurança:** impede que um usuário vire admin sozinho |
+| `supabase/migrations/004_materia_e_uso_ia.sql` | Coluna `materia` nos itens e tabela `uso_ia` (limite diário da IA) |
 | `supabase/seed/001_inss_lucas.sql` | Cronograma INSS 2026 (troque o e-mail do usuário dentro do arquivo) |
 
 ### Primeiro administrador
@@ -64,11 +67,36 @@ Guardam a chave de serviço no servidor, nunca no Angular. Só administradores c
 |---|---|
 | `criar-usuario` | Botão "Novo usuário" |
 | `redefinir-senha-usuario` | Botão "Redefinir senha" (substitui a recuperação por e-mail, sem SMTP) |
+| `gerar-plano` | Botão "Criar com IA" no plano do bloco (qualquer usuário logado, com limite diário) |
 
 ```bash
 supabase functions deploy criar-usuario --project-ref <project-ref>
 supabase functions deploy redefinir-senha-usuario --project-ref <project-ref>
+supabase functions deploy gerar-plano --project-ref <project-ref>
 ```
+
+### IA (função `gerar-plano`)
+
+A IA roda só no servidor: a chave nunca vai para o Angular. O provedor é escolhido por secret, então dá para começar
+no plano gratuito do Gemini e trocar para a Anthropic depois sem mexer no código.
+
+```bash
+# Gemini (gratuito para testes) — chave em https://aistudio.google.com/apikey
+supabase secrets set GEMINI_API_KEY=... --project-ref <project-ref>
+
+# Opcionais
+supabase secrets set GEMINI_MODEL=gemini-2.5-flash IA_LIMITE_DIARIO=5 --project-ref <project-ref>
+
+# Para trocar para a Anthropic (Claude) depois:
+supabase secrets set IA_PROVEDOR=anthropic ANTHROPIC_API_KEY=... --project-ref <project-ref>
+# (modelo padrão claude-opus-5-5; use ANTHROPIC_MODEL para escolher outro)
+```
+
+- **Limite:** `IA_LIMITE_DIARIO` planos por usuário a cada 24h (padrão 5; admins sem limite). O uso fica em `uso_ia`,
+  que só a função grava.
+- **Privacidade:** em planos gratuitos de IA o provedor pode usar o conteúdo enviado para melhorar seus produtos. O
+  diálogo avisa o usuário. Ao migrar para um plano pago, confirme a política de dados do provedor.
+- **Nada é gravado pela IA:** a função só devolve o plano; o app mostra uma prévia e grava depois que o usuário confirma.
 
 ### Configurações no painel do Supabase
 

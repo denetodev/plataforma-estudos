@@ -44,6 +44,25 @@ import { FormDialogData } from '../form-dialog';
           }
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Matéria</mat-label>
+          <input
+            matInput
+            formControlName="materia"
+            list="materias-existentes"
+            autocomplete="off"
+            placeholder="Ex.: Língua Portuguesa"
+          />
+          @if (form.controls.materia.hasError('maxlength')) {
+            <mat-error>Use no máximo 60 caracteres.</mat-error>
+          }
+        </mat-form-field>
+        <datalist id="materias-existentes">
+          @for (m of dados.materias ?? []; track m) {
+            <option [value]="m"></option>
+          }
+        </datalist>
+
         <div class="linha">
           <mat-form-field appearance="outline">
             <mat-label>Tipo</mat-label>
@@ -124,7 +143,7 @@ import { FormDialogData } from '../form-dialog';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ItemFormDialogComponent {
-  protected readonly dados = inject<FormDialogData<Item, ItemDados>>(MAT_DIALOG_DATA);
+  protected readonly dados = inject<FormDialogData<Item, ItemDados> & { materias?: string[] }>(MAT_DIALOG_DATA);
   private readonly ref = inject(MatDialogRef<ItemFormDialogComponent, boolean>);
 
   protected readonly tipos = TIPOS_ITEM;
@@ -133,6 +152,7 @@ export class ItemFormDialogComponent {
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     descricao: [this.dados.valor?.descricao ?? '', [Validators.required, Validators.maxLength(500)]],
+    materia: [this.dados.valor?.materia ?? '', [Validators.maxLength(60)]],
     tipo: [this.dados.valor?.tipo ?? ''],
     duracao_min: [
       this.dados.valor?.duracao_min ?? (null as number | null),
@@ -156,6 +176,7 @@ export class ItemFormDialogComponent {
     try {
       await this.dados.salvar({
         descricao: v.descricao.trim(),
+        materia: v.materia.trim() || null,
         tipo: (v.tipo || null) as ItemDados['tipo'],
         duracao_min: v.duracao_min ? Number(v.duracao_min) : null,
         fonte: v.fonte.trim() || null,
