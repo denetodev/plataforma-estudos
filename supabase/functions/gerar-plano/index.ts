@@ -9,7 +9,8 @@
 // Secrets (supabase secrets set NOME=valor):
 //   IA_PROVEDOR         gemini | anthropic            (opcional, padrão gemini)
 //   GEMINI_API_KEY      chave do Google AI Studio      (provedor gemini)
-//   GEMINI_MODEL        modelo                         (opcional, padrão gemini-3.8-flash)
+//   GEMINI_MODEL        modelo principal               (opcional, padrão gemini-3.8-flash)
+//   GEMINI_MODELOS_RESERVA modelos de reserva, separados por vírgula (opcional; padrão gemini-3.6-flash, gemini-3.5-flash-lite)
 //   ANTHROPIC_API_KEY   chave da Anthropic             (provedor anthropic)
 //   ANTHROPIC_MODEL     modelo                         (opcional, padrão claude-opus-5-5)
 //   IA_LIMITE_DIARIO    planos por usuário a cada 24h  (opcional, padrão 5; admins não têm limite)
@@ -115,38 +116,83 @@ function montarMensagem(p: Pedido): string {
 
 // ---------------------------------------------------------------- provedores
 
+/** Modelos gratuitos do Gemini, em ordem de preferência: se um estiver sobrecarregado ou indisponível, tenta o próximo. */
+const MODELOS_GEMINI_PADRAO = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+const TENTATIVAS_POR_MODELO = 2;
+const TIMEOUT_GEMINI_MS = 55_000;
+
+function modelosGemini(): string[] {
+  const principal = Deno.env.get('GEMINI_MODEL')?.trim();
+  const reserva = (Deno.env.get('GEMINI_MODELOS_RESERVA') ?? '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean);
+  return [...new Set([principal || MODELOS_GEMINI_PADRAO[0], ...(reserva.length > 0 ? reserva : MODELOS_GEMINI_PADRAO)])];
+}
+
+const esperar = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function chamarGemini(sistema: string, usuario: string): Promise<string> {
   const chave = Deno.env.get('GEMINI_API_KEY');
   if (!chave) throw new ErroIA(500, 'A IA ainda não foi configurada no servidor.');
-  const modelo = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.8-flash';
+  const espera = Number(Deno.env.get('IA_ESPERA_MS') ?? 1500);
 
-  const r = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': chave },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: sistema }] },
-        contents: [{ role: 'user', parts: [{ text: usuario }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.4, maxOutputTokens: 16384 },
-      }),
-    },
-  );
+  const corpo = JSON.stringify({
+    systemInstruction: { parts: [{ text: sistema }] },
+    contents: [{ role: 'user', parts: [{ text: usuario }] }],
+    generationConfig: { responseMimeType: 'application/json', temperature: 0.4, maxOutputTokens: 16384 },
+  });
 
-  if (!r.ok) {
-    console.error('Gemini respondeu', r.status, (await r.text()).slice(0, 500));
-    if (r.status === 429) {
-      throw new ErroIA(429, 'A IA está com muitas solicitações agora (limite do plano gratuito). Tente de novo em alguns minutos.');
+  // Erros temporários do Google (503 "alta demanda", 500, 504, timeout) têm nova tentativa e depois
+  // passam para o próximo modelo; 429 e 404 passam direto para o próximo; 400/401/403 são de configuração.
+  let ultimoErro = new ErroIA(502, 'A IA está indisponível no momento. Tente novamente.');
+  for (const modelo of modelosGemini()) {
+    for (let tentativa = 1; tentativa <= TENTATIVAS_POR_MODELO; tentativa++) {
+      let r: Response;
+      try {
+        r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': chave },
+            body: corpo,
+            signal: AbortSignal.timeout(TIMEOUT_GEMINI_MS),
+          },
+        );
+      } catch (e) {
+        console.error(`Gemini (${modelo}) sem resposta, tentativa ${tentativa}`, e);
+        ultimoErro = new ErroIA(503, 'A IA demorou demais para responder. Tente novamente.');
+        break; // timeout: não vale repetir no mesmo modelo
+      }
+
+      if (r.ok) return lerRespostaGemini(await r.json());
+
+      console.error(`Gemini (${modelo}) respondeu`, r.status, (await r.text()).slice(0, 500));
+
+      if (r.status === 400 || r.status === 401 || r.status === 403) {
+        throw new ErroIA(500, 'A IA não está configurada corretamente no servidor (chave ou modelo).');
+      }
+      if (r.status === 404) {
+        ultimoErro = new ErroIA(500, 'O modelo de IA configurado não está disponível para esta chave.');
+        break;
+      }
+      if (r.status === 429) {
+        ultimoErro = new ErroIA(429, 'A IA está com muitas solicitações agora (limite do plano gratuito). Tente de novo em alguns minutos.');
+        break;
+      }
+      ultimoErro = new ErroIA(503, 'A IA do Google está sobrecarregada no momento. Tente novamente em instantes.');
+      if (tentativa < TENTATIVAS_POR_MODELO) await esperar(espera);
     }
-    if (r.status === 400 || r.status === 401 || r.status === 403 || r.status === 404) {
-      throw new ErroIA(500, 'A IA não está configurada corretamente no servidor (chave ou modelo).');
-    }
-    throw new ErroIA(502, 'A IA está indisponível no momento. Tente novamente.');
   }
+  throw ultimoErro;
+}
 
-  const dados = await r.json();
+function lerRespostaGemini(dados: {
+  candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
+  promptFeedback?: { blockReason?: string };
+}): string {
   const candidato = dados.candidates?.[0];
-  const texto: string = (candidato?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? '').join('');
+  const texto = (candidato?.content?.parts ?? []).map((p) => p.text ?? '').join('');
   if (!texto) {
     if (dados.promptFeedback?.blockReason) throw new ErroIA(422, 'A IA recusou este pedido. Reformule o texto e tente de novo.');
     throw new ErroIA(502, 'A IA não retornou resposta. Tente novamente.');
