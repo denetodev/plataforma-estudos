@@ -1,0 +1,200 @@
+<h2 mat-dialog-title class="titulo">
+  <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+  Criar plano com IA
+</h2>
+
+<mat-dialog-content class="conteudo">
+  @if (erro(); as mensagem) {
+    <p class="erro" role="alert">{{ mensagem }}</p>
+  }
+
+  @switch (etapa()) {
+    @case ('gerando') {
+      <div class="gerando" role="status" aria-live="polite">
+        <mat-spinner diameter="40" />
+        <p>Gerando o seu plano… isso pode levar até um minuto.</p>
+      </div>
+    }
+
+    @case ('form') {
+      <form id="form-ia" [formGroup]="form" (ngSubmit)="gerar()" novalidate>
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>O que você quer estudar?</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            formControlName="pedido"
+            placeholder="Ex.: Quero um bloco com Língua Portuguesa, Raciocínio Lógico e Seguridade Social para o INSS (Técnico), revezando as matérias e fechando a semana com questões."
+            cdkFocusInitial
+          ></textarea>
+          <mat-hint align="end">{{ form.controls.pedido.value.length }}/2000</mat-hint>
+          @if (form.controls.pedido.hasError('required') || form.controls.pedido.hasError('minlength')) {
+            <mat-error>Descreva o que você quer estudar (mínimo de 10 caracteres).</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="linha">
+          <mat-form-field appearance="outline">
+            <mat-label>Semanas</mat-label>
+            <mat-select formControlName="semanas">
+              @for (n of opcoesSemanas; track n) {
+                <mat-option [value]="n">{{ n }} {{ n === 1 ? 'semana' : 'semanas' }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Horas de estudo por dia</mat-label>
+            <input matInput type="number" inputmode="decimal" min="0.5" max="12" step="0.5" formControlName="horasPorDia" />
+            @if (form.controls.horasPorDia.invalid) {
+              <mat-error>Use um valor entre 0,5 e 12 horas.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="dias">
+          <span class="dias__rotulo" id="rotulo-dias">Dias de estudo</span>
+          <mat-button-toggle-group multiple formControlName="diasEstudo" aria-labelledby="rotulo-dias" hideMultipleSelectionIndicator>
+            @for (dia of diasSemana; track dia.valor) {
+              <mat-button-toggle [value]="dia.valor" [attr.aria-label]="dia.rotulo">{{ dia.rotulo.slice(0, 3) }}</mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+          @if (form.controls.diasEstudo.invalid) {
+            <p class="dias__erro" role="alert">Escolha pelo menos um dia.</p>
+          }
+        </div>
+
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Começar em (opcional)</mat-label>
+          <input matInput [matDatepicker]="seletorInicio" formControlName="inicio" placeholder="dd/mm/aaaa" />
+          <mat-datepicker-toggle matIconSuffix [for]="seletorInicio" />
+          <mat-datepicker #seletorInicio />
+          <mat-hint>Com a data, cada semana já recebe o seu período e aparece em “Hoje” e no cronograma.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Edital, apostila ou lista de tópicos (opcional)</mat-label>
+          <textarea
+            matInput
+            rows="5"
+            formControlName="material"
+            placeholder="Cole aqui os tópicos do edital ou o sumário da apostila. A IA só usa páginas e capítulos que estiverem neste texto."
+          ></textarea>
+          <mat-hint align="end">{{ form.controls.material.value.length }}/{{ maxMaterial }}</mat-hint>
+          @if (form.controls.material.hasError('maxlength')) {
+            <mat-error>Texto longo demais (máximo de {{ maxMaterial }} caracteres).</mat-error>
+          }
+        </mat-form-field>
+
+        <p class="aviso">
+          <mat-icon aria-hidden="true">info</mat-icon>
+          O que você escrever aqui é enviado a um serviço de IA externo. Não inclua dados pessoais. Em planos gratuitos de IA,
+          o provedor pode usar o conteúdo para melhorar os próprios serviços. A IA pode errar: revise o plano antes de adicionar.
+        </p>
+      </form>
+    }
+
+    @default {
+      @if (plano(); as p) {
+        <div class="resumo">
+          <p>
+            <strong>{{ p.semanas.length }}</strong> {{ p.semanas.length === 1 ? 'semana' : 'semanas' }} ·
+            <strong>{{ totalItens() }}</strong> itens ·
+            <strong>{{ totalMinutos() | minutosParaTempo }}</strong> de estudo
+          </p>
+          @if (materiasDoPlano().length > 0) {
+            <ul class="materias" aria-label="Matérias do plano">
+              @for (m of materiasDoPlano(); track m) {
+                <li><span class="ponto" [style.background]="corMateria(m)"></span>{{ m }}</li>
+              }
+            </ul>
+          }
+          <p class="resumo__dica">
+            Revise o plano e remova o que não quiser (ícone de lixeira). Nada foi salvo ainda.
+            @if (restantes() !== null) {
+              Você ainda pode gerar {{ restantes() }} {{ restantes() === 1 ? 'plano' : 'planos' }} nas próximas 24 horas.
+            }
+          </p>
+        </div>
+
+        <mat-accordion multi>
+          @for (semana of p.semanas; track $index; let i = $index) {
+            <mat-expansion-panel [expanded]="i === 0">
+              <mat-expansion-panel-header>
+                <mat-panel-title>{{ semana.label }}</mat-panel-title>
+                <mat-panel-description>{{ semana.dias.length }} {{ semana.dias.length === 1 ? 'dia' : 'dias' }}</mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <div class="semana__acoes">
+                <button mat-button type="button" class="perigo" (click)="removerSemana(i)" [disabled]="ocupado">
+                  <mat-icon>delete_outline</mat-icon>
+                  Remover semana
+                </button>
+              </div>
+
+              @for (dia of semana.dias; track $index; let j = $index) {
+                <section class="dia">
+                  <header class="dia__cabecalho">
+                    <h3>{{ dia.label }}</h3>
+                    <button mat-icon-button type="button" (click)="removerDia(i, j)" [disabled]="ocupado" aria-label="Remover dia" title="Remover dia">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </header>
+                  <ul class="itens">
+                    @for (item of dia.itens; track $index; let k = $index) {
+                      <li class="item">
+                        <div class="item__corpo">
+                          <p class="item__descricao">{{ item.descricao }}</p>
+                          <p class="item__meta">
+                            @if (item.materia) {
+                              <span class="materia"><span class="ponto" [style.background]="corMateria(item.materia)"></span>{{ item.materia }}</span>
+                            }
+                            @if (item.duracao_min) {
+                              <span>{{ item.duracao_min | minutosParaTempo }}</span>
+                            }
+                            @if (item.fonte) {
+                              <span>{{ item.fonte }}@if (item.paginas) { · p.{{ item.paginas }} }</span>
+                            }
+                          </p>
+                        </div>
+                        <button mat-icon-button type="button" (click)="removerItem(i, j, k)" [disabled]="ocupado" aria-label="Remover item" title="Remover item">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+      }
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @switch (etapa()) {
+    @case ('form') {
+      <button mat-button type="button" mat-dialog-close>Cancelar</button>
+      <button mat-flat-button type="submit" form="form-ia">
+        <mat-icon>auto_awesome</mat-icon>
+        Gerar plano
+      </button>
+    }
+    @case ('gerando') {
+      <button mat-button type="button" disabled>Aguarde…</button>
+    }
+    @default {
+      <button mat-button type="button" (click)="voltar()" [disabled]="ocupado">Ajustar pedido</button>
+      <button mat-button type="button" mat-dialog-close [disabled]="ocupado">Descartar</button>
+      <button mat-flat-button type="button" (click)="adicionar()" [disabled]="ocupado || totalItens() === 0">
+        @if (etapa() === 'salvando') {
+          <mat-spinner diameter="20" />
+        } @else {
+          Adicionar ao bloco
+        }
+      </button>
+    }
+  }
+</mat-dialog-actions>

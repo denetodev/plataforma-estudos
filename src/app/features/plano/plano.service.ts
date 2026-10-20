@@ -5,6 +5,8 @@ import { SupabaseService } from '../../core/supabase/supabase.service';
 import { DiaComItens, DiaDados } from '../../shared/models/dia.model';
 import { Item, ItemDados } from '../../shared/models/item.model';
 import { SemanaCompleta, SemanaDados } from '../../shared/models/semana.model';
+import { dataParaIso } from '../../shared/utils/data';
+import { PlanoGerado } from './ia/ia.service';
 
 type Tabela = 'semanas' | 'dias' | 'itens';
 
@@ -110,6 +112,76 @@ export class PlanoService {
 
   excluirItem(id: string): Promise<void> {
     return this.excluir('itens', id, 'excluir o item');
+  }
+
+  /**
+   * Grava o plano gerado pela IA (semanas → dias → itens) no bloco, ao final das semanas existentes.
+   * Não há transação no cliente: se algo falhar no meio, as semanas já criadas são removidas
+   * (dias e itens saem junto, por cascata) para não deixar um plano pela metade.
+   */
+  async criarPlanoGerado(blocoId: string, plano: PlanoGerado, inicio: Date | null): Promise<void> {
+    const primeiraOrdem = await this.proximaOrdem('semanas', 'bloco_id', blocoId);
+    const semanasCriadas: string[] = [];
+
+    try {
+      const periodo = (indice: number): { data_inicio: string | null; data_fim: string | null } => {
+        if (!inicio) return { data_inicio: null, data_fim: null };
+        const dia = (extra: number) =>
+          dataParaIso(new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + indice * 7 + extra));
+        return { data_inicio: dia(0), data_fim: dia(6) };
+      };
+
+      const { data: semanas, error: erroSemanas } = await this.supabase.client
+        .from('semanas')
+        .insert(
+          plano.semanas.map((s, i) => ({
+            bloco_id: blocoId,
+            ordem: primeiraOrdem + i,
+            label: s.label,
+            ...periodo(i),
+          })),
+        )
+        .select('id, ordem')
+        .returns<{ id: string; ordem: number }[]>();
+      if (erroSemanas || !semanas) throw this.erro('Não foi possível criar as semanas do plano.', erroSemanas);
+      semanasCriadas.push(...semanas.map((s) => s.id));
+      const semanaPorOrdem = new Map(semanas.map((s) => [s.ordem, s.id]));
+
+      const { data: dias, error: erroDias } = await this.supabase.client
+        .from('dias')
+        .insert(
+          plano.semanas.flatMap((s, i) =>
+            s.dias.map((d, j) => ({
+              semana_id: semanaPorOrdem.get(primeiraOrdem + i),
+              ordem: j + 1,
+              label: d.label,
+              dia_semana: d.dia_semana,
+            })),
+          ),
+        )
+        .select('id, semana_id, ordem')
+        .returns<{ id: string; semana_id: string; ordem: number }[]>();
+      if (erroDias || !dias) throw this.erro('Não foi possível criar os dias do plano.', erroDias);
+      const diaPorChave = new Map(dias.map((d) => [`${d.semana_id}:${d.ordem}`, d.id]));
+
+      const { error: erroItens } = await this.supabase.client.from('itens').insert(
+        plano.semanas.flatMap((s, i) =>
+          s.dias.flatMap((d, j) =>
+            d.itens.map((item, k) => ({
+              dia_id: diaPorChave.get(`${semanaPorOrdem.get(primeiraOrdem + i)}:${j + 1}`),
+              ordem: k + 1,
+              ...item,
+            })),
+          ),
+        ),
+      );
+      if (erroItens) throw this.erro('Não foi possível criar os itens do plano.', erroItens);
+    } catch (e) {
+      if (semanasCriadas.length > 0) {
+        await this.supabase.client.from('semanas').delete().in('id', semanasCriadas);
+      }
+      throw e;
+    }
   }
 
   /**

@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { FunctionsHttpError } from '@supabase/supabase-js';
 
 import { SupabaseService } from '../../core/supabase/supabase.service';
 import { Concurso } from '../../shared/models/concurso.model';
 import { Perfil, PerfilRole } from '../../shared/models/perfil.model';
+import { mensagemDaFuncao } from '../../shared/utils/funcoes';
 
 export interface UsuarioResumo extends Perfil {
   total_concursos: number;
@@ -54,7 +54,7 @@ export class AdminService {
       'criar-usuario',
       { body: dados },
     );
-    if (error) throw new Error(await this.mensagemDaFuncao(error, 'criar-usuario'));
+    if (error) throw new Error(await mensagemDaFuncao(error, 'criar-usuario'));
     return { aviso: data?.aviso };
   }
 
@@ -63,29 +63,7 @@ export class AdminService {
     const { error } = await this.supabase.client.functions.invoke('redefinir-senha-usuario', {
       body: { usuarioId, novaSenha },
     });
-    if (error) throw new Error(await this.mensagemDaFuncao(error, 'redefinir-senha-usuario'));
-  }
-
-  private async mensagemDaFuncao(erro: unknown, funcao: string): Promise<string> {
-    if (erro instanceof FunctionsHttpError) {
-      if (erro.context.status === 404 && !(await this.corpoComErro(erro))) {
-        return `A função "${funcao}" ainda não foi publicada no Supabase.`;
-      }
-      const mensagem = await this.corpoComErro(erro);
-      if (mensagem) return mensagem;
-    }
-    console.error(`Erro ao chamar ${funcao}`, erro);
-    return 'Não foi possível concluir a operação. Tente novamente.';
-  }
-
-  /** Mensagem `{ erro }` devolvida pela função, se houver (o gateway 404 não traz esse corpo). */
-  private async corpoComErro(erro: FunctionsHttpError): Promise<string | null> {
-    try {
-      const corpo = (await erro.context.clone().json()) as { erro?: string };
-      return corpo.erro ?? null;
-    } catch {
-      return null;
-    }
+    if (error) throw new Error(await mensagemDaFuncao(error, 'redefinir-senha-usuario'));
   }
 
   async listarConcursos(): Promise<ConcursoComDono[]> {

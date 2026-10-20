@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -31,11 +32,13 @@ import { Dia, DiaComItens, DiaDados } from '../../../shared/models/dia.model';
 import { Item, ItemDados, TIPOS_ITEM } from '../../../shared/models/item.model';
 import { Semana, SemanaCompleta, SemanaDados } from '../../../shared/models/semana.model';
 import { isoParaData } from '../../../shared/utils/data';
+import { corDaMateria } from '../../../shared/utils/materia';
 import { DiaSemanaPipe } from '../../../shared/pipes/dia-semana.pipe';
 import { MinutosParaTempoPipe } from '../../../shared/pipes/minutos-para-tempo.pipe';
 import { BlocosService } from '../blocos.service';
 import { DiaFormDialogComponent } from '../dia-form/dia-form-dialog.component';
 import { FormDialogData } from '../form-dialog';
+import { GerarPlanoDialogComponent, GerarPlanoDialogData } from '../ia/gerar-plano-dialog.component';
 import { ItemFormDialogComponent } from '../item-form/item-form-dialog.component';
 import { Ordenavel, PlanoService } from '../plano.service';
 import { SemanaFormDialogComponent } from '../semana-form/semana-form-dialog.component';
@@ -47,6 +50,7 @@ import { SemanaFormDialogComponent } from '../semana-form/semana-form-dialog.com
     RouterLink,
     MatButtonModule,
     MatCheckboxModule,
+    MatChipsModule,
     MatExpansionModule,
     MatIconModule,
     MatMenuModule,
@@ -92,6 +96,39 @@ export class PlanoBlocoComponent implements OnInit {
   protected readonly percentual = computed(() =>
     this.totalItens() > 0 ? Math.round((this.itensConcluidos() / this.totalItens()) * 100) : 0,
   );
+
+  /** Matéria usada no filtro; `null` mostra tudo. */
+  protected readonly filtroMateria = signal<string | null>(null);
+
+  protected readonly materias = computed(() => {
+    const nomes = this.semanas().flatMap((s) => s.dias.flatMap((d) => d.itens.map((i) => i.materia)));
+    return [...new Set(nomes.filter((m): m is string => !!m))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  });
+
+  protected readonly corMateria = corDaMateria;
+
+  protected itensVisiveis(dia: DiaComItens): Item[] {
+    const filtro = this.filtroMateria();
+    return filtro ? dia.itens.filter((i) => i.materia === filtro) : dia.itens;
+  }
+
+  protected async criarComIa(): Promise<void> {
+    const dados: GerarPlanoDialogData = { blocoId: this.blocoId() };
+    const criou = await firstValueFrom(
+      this.dialog
+        .open<GerarPlanoDialogComponent, GerarPlanoDialogData, boolean>(GerarPlanoDialogComponent, {
+          data: dados,
+          width: '780px',
+          maxWidth: '96vw',
+          // Evita perder um plano recém-gerado por um clique fora do diálogo.
+          disableClose: true,
+        })
+        .afterClosed(),
+    );
+    if (!criou) return;
+    this.snackBar.open('Plano adicionado ao bloco.', 'Fechar', { duration: 4000 });
+    await this.recarregar();
+  }
 
   ngOnInit(): void {
     void this.carregar();
@@ -237,6 +274,7 @@ export class PlanoBlocoComponent implements OnInit {
       undefined,
       (d) => this.planoService.criarItem(dia.id, d),
       'Item criado.',
+      { materias: this.materias() },
     );
   }
 
@@ -246,6 +284,7 @@ export class PlanoBlocoComponent implements OnInit {
       item,
       (d) => this.planoService.atualizarItem(item.id, d),
       'Item atualizado.',
+      { materias: this.materias() },
     );
   }
 
