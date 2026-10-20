@@ -1,4 +1,4 @@
-import { FunctionsHttpError } from '@supabase/supabase-js';
+import { FunctionsFetchError, FunctionsHttpError } from '@supabase/supabase-js';
 
 /**
  * Mensagem em português para um erro de `functions.invoke`. As Edge Functions do projeto devolvem
@@ -11,6 +11,12 @@ export async function mensagemDaFuncao(erro: unknown, funcao: string): Promise<s
     if (erro.context.status === 404) {
       return `A função "${funcao}" ainda não foi publicada no Supabase.`;
     }
+  }
+  // O navegador não conseguiu completar a chamada. O caso típico é a função não existir no projeto:
+  // o gateway responde 404 ao preflight (OPTIONS) e o navegador bloqueia a requisição (CORS).
+  if (erro instanceof FunctionsFetchError) {
+    console.error(`Falha de rede/CORS ao chamar ${funcao}`, erro);
+    return `Não foi possível chamar a função "${funcao}". Verifique a conexão e se ela está publicada no Supabase.`;
   }
   console.error(`Erro ao chamar ${funcao}`, erro);
   return 'Não foi possível concluir a operação. Tente novamente.';
