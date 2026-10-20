@@ -9,7 +9,7 @@
 // Secrets (supabase secrets set NOME=valor):
 //   IA_PROVEDOR         gemini | anthropic            (opcional, padrão gemini)
 //   GEMINI_API_KEY      chave do Google AI Studio      (provedor gemini)
-//   GEMINI_MODEL        modelo                         (opcional, padrão gemini-2.5-flash)
+//   GEMINI_MODEL        modelo                         (opcional, padrão gemini-3.8-flash)
 //   ANTHROPIC_API_KEY   chave da Anthropic             (provedor anthropic)
 //   ANTHROPIC_MODEL     modelo                         (opcional, padrão claude-opus-5-5)
 //   IA_LIMITE_DIARIO    planos por usuário a cada 24h  (opcional, padrão 5; admins não têm limite)
@@ -118,7 +118,7 @@ function montarMensagem(p: Pedido): string {
 async function chamarGemini(sistema: string, usuario: string): Promise<string> {
   const chave = Deno.env.get('GEMINI_API_KEY');
   if (!chave) throw new ErroIA(500, 'A IA ainda não foi configurada no servidor.');
-  const modelo = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+  const modelo = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.8-flash';
 
   const r = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`,

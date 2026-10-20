@@ -85,7 +85,7 @@ no plano gratuito do Gemini e trocar para a Anthropic depois sem mexer no códig
 supabase secrets set GEMINI_API_KEY=... --project-ref <project-ref>
 
 # Opcionais
-supabase secrets set GEMINI_MODEL=gemini-2.5-flash IA_LIMITE_DIARIO=5 --project-ref <project-ref>
+supabase secrets set GEMINI_MODEL=gemini-3.8-flash IA_LIMITE_DIARIO=5 --project-ref <project-ref>
 
 # Para trocar para a Anthropic (Claude) depois:
 supabase secrets set IA_PROVEDOR=anthropic ANTHROPIC_API_KEY=... --project-ref <project-ref>
